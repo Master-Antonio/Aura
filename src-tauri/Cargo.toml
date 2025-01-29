@@ -1,0 +1,64 @@
+[package]
+name = "aura"
+version = "0.1.0"
+description = "Aura - System Performance Optimizer"
+authors = ["you"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "aura_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.2.0", features = [] }
+
+[dependencies]
+tauri = { version = "2.5.1", features = ["macos-private-api"] }
+serde = { version = "1.0.219", features = ["derive"] }
+tauri-plugin-opener = "2.2.7"
+serde_json = "1.0.138"
+sysinfo = { version = "0.35.2", features = ["default", "system", "network", "disk", "component"] }
+window-vibrancy = "0.6.0"
+windows = { version = "0.61.1", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp", "Win32_System_SystemInformation", "Win32_System_Time", "Win32_System_Environment", "Win32_System_ProcessStatus", "Win32_System_Memory", "Win32_System_Diagnostics_Debug", "Win32_System_Registry", "Win32_Graphics_DirectWrite", "Win32_Storage_FileSystem", "Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
+ntapi = "0.4.1"
+nvml-wrapper = { version = "0.11.0", features = ["serde"], optional = true }
+wgpu = { version = "25.0.2", features = ["dx12", "metal"] }
+tokio = { version = "1.45.1", features = ["rt", "macros", "test-util", "time"] }
+thiserror = "2.0.12"
+lazy_static = "1.5.0"
+anyhow = "1.0.98"
+regex = "1.11.1"
+rand = "0.9.1"
+once_cell = "1.21.3"
+
+# Aggiungi questo blocco
+[[bin]]
+name = "aura"
+path = "src/main.rs"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.61.1", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp", "Win32_System_SystemInformation", "Win32_System_Time", "Win32_System_Environment", "Win32_System_ProcessStatus", "Win32_System_Memory", "Win32_System_Diagnostics_Debug", "Win32_System_Registry", "Win32_Graphics_DirectWrite", "Win32_Storage_FileSystem", "Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
+
+# Performance optimizations
+[profile.dev]
+opt-level = 1
+debug = true
+lto = false
+
+[profile.release]
+opt-level = 3
+debug = false
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.release-lts]
+inherits = "release"
+lto = "fat"
+codegen-units = 1

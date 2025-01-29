@@ -1,0 +1,127 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <!-- Gradient per l'aura principale -->
+        <radialGradient id="auraGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/>
+            <stop offset="70%" style="stop-color:#1d4ed8;stop-opacity:0.8"/>
+            <stop offset="100%" style="stop-color:#1e40af;stop-opacity:0.3"/>
+        </radialGradient>
+
+        <!-- Gradient per il core centrale -->
+        <radialGradient id="coreGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1"/>
+            <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:0.9"/>
+            <stop offset="100%" style="stop-color:#d97706;stop-opacity:0.7"/>
+        </radialGradient>
+
+        <!-- Gradient per gli anelli -->
+        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.8"/>
+            <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:0.6"/>
+            <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:0.4"/>
+        </linearGradient>
+
+        <!-- Filtro per l'effetto glow -->
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+
+        <!-- Filtro per l'effetto aura -->
+        <filter id="auraEffect" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="8" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 0.3 0"/>
+        </filter>
+    </defs>
+
+    <!-- Background aura effect -->
+    <circle cx="256" cy="256" r="240" fill="url(#auraGradient)" filter="url(#auraEffect)" opacity="0.4"/>
+
+    <!-- Outer ring - rappresenta il sistema -->
+    <circle cx="256" cy="256" r="200" fill="none" stroke="url(#ringGradient)" stroke-width="4" opacity="0.6"
+            filter="url(#glow)"/>
+
+    <!-- Middle ring - rappresenta i processi -->
+    <circle cx="256" cy="256" r="150" fill="none" stroke="url(#ringGradient)" stroke-width="6" opacity="0.7"
+            filter="url(#glow)"/>
+
+    <!-- Inner ring - rappresenta le performance -->
+    <circle cx="256" cy="256" r="100" fill="none" stroke="url(#ringGradient)" stroke-width="8" opacity="0.8"
+            filter="url(#glow)"/>
+
+    <!-- Core centrale - il manager -->
+    <circle cx="256" cy="256" r="60" fill="url(#coreGradient)" filter="url(#glow)"/>
+
+    <!-- Simbolo del CPU/gaming al centro -->
+    <g transform="translate(256,256)">
+        <!-- Chip design -->
+        <rect x="-30" y="-30" width="60" height="60" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+
+        <!-- CPU pins -->
+        <g stroke="#64748b" stroke-width="1.5" opacity="0.8">
+            <!-- Top pins -->
+            <line x1="-20" y1="-35" x2="-20" y2="-40"/>
+            <line x1="-10" y1="-35" x2="-10" y2="-40"/>
+            <line x1="0" y1="-35" x2="0" y2="-40"/>
+            <line x1="10" y1="-35" x2="10" y2="-40"/>
+            <line x1="20" y1="-35" x2="20" y2="-40"/>
+
+            <!-- Bottom pins -->
+            <line x1="-20" y1="35" x2="-20" y2="40"/>
+            <line x1="-10" y1="35" x2="-10" y2="40"/>
+            <line x1="0" y1="35" x2="0" y2="40"/>
+            <line x1="10" y1="35" x2="10" y2="40"/>
+            <line x1="20" y1="35" x2="20" y2="40"/>
+
+            <!-- Left pins -->
+            <line x1="-35" y1="-20" x2="-40" y2="-20"/>
+            <line x1="-35" y1="-10" x2="-40" y2="-10"/>
+            <line x1="-35" y1="0" x2="-40" y2="0"/>
+            <line x1="-35" y1="10" x2="-40" y2="10"/>
+            <line x1="-35" y1="20" x2="-40" y2="20"/>
+
+            <!-- Right pins -->
+            <line x1="35" y1="-20" x2="40" y2="-20"/>
+            <line x1="35" y1="-10" x2="40" y2="-10"/>
+            <line x1="35" y1="0" x2="40" y2="0"/>
+            <line x1="35" y1="10" x2="40" y2="10"/>
+            <line x1="35" y1="20" x2="40" y2="20"/>
+        </g>
+
+        <!-- Core pattern -->
+        <rect x="-15" y="-15" width="30" height="30" rx="3" fill="#3b82f6" opacity="0.7"/>
+        <rect x="-10" y="-10" width="20" height="20" rx="2" fill="#60a5fa" opacity="0.8"/>
+        <rect x="-5" y="-5" width="10" height="10" rx="1" fill="#93c5fd" opacity="0.9"/>
+    </g>
+
+    <!-- Pulse rings - effetto dinamico -->
+    <g opacity="0.3">
+        <circle cx="256" cy="256" r="120" fill="none" stroke="#3b82f6" stroke-width="2">
+            <animate attributeName="r" values="120;140;120" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="256" cy="256" r="160" fill="none" stroke="#60a5fa" stroke-width="1">
+            <animate attributeName="r" values="160;180;160" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.2;0.05;0.2" dur="3s" repeatCount="indefinite"/>
+        </circle>
+    </g>
+
+    <!-- Performance indicators - piccoli dots che rappresentano l'ottimizzazione -->
+    <g opacity="0.6">
+        <circle cx="356" cy="156" r="4" fill="#10b981">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="156" cy="156" r="4" fill="#f59e0b">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="356" cy="356" r="4" fill="#ef4444">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="156" cy="356" r="4" fill="#8b5cf6">
+            <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+    </g>
+</svg>
