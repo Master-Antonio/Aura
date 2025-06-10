@@ -97,3 +97,6 @@ Licenza: **Proprietaria con permesso di consultazione e contributo (source-avail
 ## Autori
 
 - [anton](https://github.com/anton) e collaboratori
+
+## Supportami
+paypal.me/MasterAntonio
