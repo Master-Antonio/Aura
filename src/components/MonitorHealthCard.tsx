@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SvgIconComponent } from "@mui/icons-material";
-import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
@@ -49,14 +48,11 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
 }) => {
   const [health, setHealth] = useState<MonitorHealth | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
-
   const fetchHealth = async () => {
     try {
       setLoading(true);
       const healthData = await invoke<MonitorHealth>("get_monitor_health");
       setHealth(healthData);
-      setLastUpdate(Date.now());
     } catch (error) {
       console.error("Failed to fetch monitor health:", error);
     } finally {
@@ -157,11 +153,9 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
         )}
       </Box>
 
-      <Divider sx={{ my: 2 }} />
-
-      {/* Component Health Grid */}
+      <Divider sx={{ my: 2 }} />      {/* Component Health Grid */}
       <Grid container spacing={1}>
-        {components.map((component, index) => (
+        {components.map((component) => (
           <Grid key={component.name} size={6}>
             <MetricBox>
               <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
