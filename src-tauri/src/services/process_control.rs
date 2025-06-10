@@ -6,7 +6,6 @@ use sysinfo::Pid;
 use thiserror::Error;
 use windows::core::PCWSTR;
 use windows::Win32::Foundation::{CloseHandle, INVALID_HANDLE_VALUE};
-use windows::Win32::Storage::FileSystem::{GetLogicalDriveStringsW, QueryDosDeviceW};
 use windows::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, Thread32First, Thread32Next, TH32CS_SNAPTHREAD, THREADENTRY32,
 };
@@ -232,7 +231,9 @@ pub fn set_process_affinity_cores(pid: u32, cores: Vec<u32>) -> Result<()> {
     #[cfg(target_os = "windows")]
     {
         if cores.is_empty() {
-            return Err(ProcessControlError::AffinityError("At least one core must be specified".to_string()));
+            return Err(ProcessControlError::AffinityError(
+                "At least one core must be specified".to_string(),
+            ));
         }
 
         unsafe {
@@ -255,7 +256,9 @@ pub fn set_process_affinity_cores(pid: u32, cores: Vec<u32>) -> Result<()> {
             }
 
             if affinity_mask == 0 {
-                return Err(ProcessControlError::AffinityError("No valid cores specified".to_string()));
+                return Err(ProcessControlError::AffinityError(
+                    "No valid cores specified".to_string(),
+                ));
             }
 
             SetProcessAffinityMask(process_handle, affinity_mask)
@@ -282,24 +285,25 @@ pub fn get_process_affinity(pid: u32) -> Result<Vec<u32>> {
         use windows::Win32::System::Threading::GetProcessAffinityMask;
 
         unsafe {
-            let process_handle = OpenProcess(
-                PROCESS_QUERY_INFORMATION,
-                false,
-                pid,
-            )
+            let process_handle = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid)
                 .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
 
             let mut process_affinity_mask: usize = 0;
             let mut system_affinity_mask: usize = 0;
 
-            GetProcessAffinityMask(process_handle, &mut process_affinity_mask, &mut system_affinity_mask)
+            GetProcessAffinityMask(
+                process_handle,
+                &mut process_affinity_mask,
+                &mut system_affinity_mask,
+            )
                 .map_err(|e| ProcessControlError::AffinityError(e.to_string()))?;
 
             CloseHandle(process_handle);
 
             // Convert mask to core list
             let mut cores = Vec::new();
-            for i in 0..64 { // Check up to 64 cores
+            for i in 0..64 {
+                // Check up to 64 cores
                 if process_affinity_mask & (1 << i) != 0 {
                     cores.push(i);
                 }
@@ -316,7 +320,9 @@ pub fn get_process_affinity(pid: u32) -> Result<Vec<u32>> {
 }
 
 pub fn kill_process(pid: u32) -> Result<()> {
-    let mut system = get_system().lock().map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
     system.refresh_all();
 
     // Find all child processes first
@@ -380,11 +386,19 @@ pub fn suspend_process(pid: u32) -> Result<()> {
         let output = Command::new("kill")
             .args(["-STOP", &pid.to_string()])
             .output()
-            .map_err(|e| ProcessControlError::OpenError(format!("Failed to send SIGSTOP to process {}: {}", pid, e)))?;
+            .map_err(|e| {
+                ProcessControlError::OpenError(format!(
+                    "Failed to send SIGSTOP to process {}: {}",
+                    pid, e
+                ))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(ProcessControlError::OpenError(format!("Failed to suspend process {}: {}", pid, stderr)));
+            return Err(ProcessControlError::OpenError(format!(
+                "Failed to suspend process {}: {}",
+                pid, stderr
+            )));
         }
         Ok(())
     }
@@ -407,11 +421,19 @@ pub fn resume_process(pid: u32) -> Result<()> {
         let output = Command::new("kill")
             .args(["-CONT", &pid.to_string()])
             .output()
-            .map_err(|e| ProcessControlError::OpenError(format!("Failed to send SIGCONT to process {}: {}", pid, e)))?;
+            .map_err(|e| {
+                ProcessControlError::OpenError(format!(
+                    "Failed to send SIGCONT to process {}: {}",
+                    pid, e
+                ))
+            })?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(ProcessControlError::OpenError(format!("Failed to resume process {}: {}", pid, stderr)));
+            return Err(ProcessControlError::OpenError(format!(
+                "Failed to resume process {}: {}",
+                pid, stderr
+            )));
         }
         Ok(())
     }
@@ -430,15 +452,21 @@ fn suspend_process_threads(pid: u32) -> Result<()> {
             PROCESS_QUERY_INFORMATION | PROCESS_SUSPEND_RESUME,
             false,
             pid,
-        ).map_err(|e| ProcessControlError::OpenError(format!("Failed to open process {}: {}", pid, e)))?;
+        )
+            .map_err(|e| {
+                ProcessControlError::OpenError(format!("Failed to open process {}: {}", pid, e))
+            })?;
 
         let _ = CloseHandle(process_handle); // Close immediately, we just needed to verify access
 
-        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
-            .map_err(|e| ProcessControlError::OpenError(format!("Failed to create thread snapshot: {}", e)))?;
+        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0).map_err(|e| {
+            ProcessControlError::OpenError(format!("Failed to create thread snapshot: {}", e))
+        })?;
 
         if snapshot == INVALID_HANDLE_VALUE {
-            return Err(ProcessControlError::OpenError("Invalid thread snapshot handle".to_string()));
+            return Err(ProcessControlError::OpenError(
+                "Invalid thread snapshot handle".to_string(),
+            ));
         }
 
         let mut thread_entry = THREADENTRY32 {
@@ -466,12 +494,18 @@ fn suspend_process_threads(pid: u32) -> Result<()> {
                             if suspend_result != u32::MAX {
                                 success_count += 1;
                             } else {
-                                errors.push(format!("Failed to suspend thread {}", thread_entry.th32ThreadID));
+                                errors.push(format!(
+                                    "Failed to suspend thread {}",
+                                    thread_entry.th32ThreadID
+                                ));
                             }
                             let _ = CloseHandle(handle);
                         }
                         Err(e) => {
-                            errors.push(format!("Failed to open thread {}: {}", thread_entry.th32ThreadID, e));
+                            errors.push(format!(
+                                "Failed to open thread {}: {}",
+                                thread_entry.th32ThreadID, e
+                            ));
                         }
                     }
                 }
@@ -490,7 +524,12 @@ fn suspend_process_threads(pid: u32) -> Result<()> {
         if success_count > 0 {
             Ok(())
         } else {
-            Err(ProcessControlError::OpenError(format!("Failed to suspend any of {} threads for process {} - Errors: {}", total_threads, pid, errors.join("; "))))
+            Err(ProcessControlError::OpenError(format!(
+                "Failed to suspend any of {} threads for process {} - Errors: {}",
+                total_threads,
+                pid,
+                errors.join("; ")
+            )))
         }
     }
 }
@@ -503,15 +542,21 @@ fn resume_process_threads(pid: u32) -> Result<()> {
             PROCESS_QUERY_INFORMATION | PROCESS_SUSPEND_RESUME,
             false,
             pid,
-        ).map_err(|e| ProcessControlError::OpenError(format!("Failed to open process {}: {}", pid, e)))?;
+        )
+            .map_err(|e| {
+                ProcessControlError::OpenError(format!("Failed to open process {}: {}", pid, e))
+            })?;
 
         let _ = CloseHandle(process_handle); // Close immediately, we just needed to verify access
 
-        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0)
-            .map_err(|e| ProcessControlError::OpenError(format!("Failed to create thread snapshot: {}", e)))?;
+        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0).map_err(|e| {
+            ProcessControlError::OpenError(format!("Failed to create thread snapshot: {}", e))
+        })?;
 
         if snapshot == INVALID_HANDLE_VALUE {
-            return Err(ProcessControlError::OpenError("Invalid thread snapshot handle".to_string()));
+            return Err(ProcessControlError::OpenError(
+                "Invalid thread snapshot handle".to_string(),
+            ));
         }
 
         let mut thread_entry = THREADENTRY32 {
@@ -539,12 +584,18 @@ fn resume_process_threads(pid: u32) -> Result<()> {
                             if resume_result != u32::MAX {
                                 success_count += 1;
                             } else {
-                                errors.push(format!("Failed to resume thread {}", thread_entry.th32ThreadID));
+                                errors.push(format!(
+                                    "Failed to resume thread {}",
+                                    thread_entry.th32ThreadID
+                                ));
                             }
                             let _ = CloseHandle(handle);
                         }
                         Err(e) => {
-                            errors.push(format!("Failed to open thread {}: {}", thread_entry.th32ThreadID, e));
+                            errors.push(format!(
+                                "Failed to open thread {}: {}",
+                                thread_entry.th32ThreadID, e
+                            ));
                         }
                     }
                 }
@@ -563,7 +614,12 @@ fn resume_process_threads(pid: u32) -> Result<()> {
         if success_count > 0 {
             Ok(())
         } else {
-            Err(ProcessControlError::OpenError(format!("Failed to resume any of {} threads for process {} - Errors: {}", total_threads, pid, errors.join("; "))))
+            Err(ProcessControlError::OpenError(format!(
+                "Failed to resume any of {} threads for process {} - Errors: {}",
+                total_threads,
+                pid,
+                errors.join("; ")
+            )))
         }
     }
 }
@@ -609,7 +665,9 @@ pub fn is_process_suspended(pid: u32) -> Result<bool> {
         );
 
         if status != STATUS_INFO_LENGTH_MISMATCH {
-            return Err(ProcessControlError::OpenError("Failed to get buffer size for system information".to_string()));
+            return Err(ProcessControlError::OpenError(
+                "Failed to get buffer size for system information".to_string(),
+            ));
         }
 
         // Allocate buffer with some extra space for potential growth
@@ -624,7 +682,10 @@ pub fn is_process_suspended(pid: u32) -> Result<bool> {
             &mut buffer_size,
         );
         if status != STATUS_SUCCESS {
-            return Err(ProcessControlError::OpenError(format!("NtQuerySystemInformation failed with status: {:x}", status)));
+            return Err(ProcessControlError::OpenError(format!(
+                "NtQuerySystemInformation failed with status: {:x}",
+                status
+            )));
         }
 
         // Parse the buffer to find our process
@@ -644,12 +705,18 @@ pub fn is_process_suspended(pid: u32) -> Result<bool> {
                 let total_threads = process_info.number_of_threads;
 
                 for i in 0..total_threads {
-                    let thread_offset = threads_start + (i as usize * std::mem::size_of::<SystemThreadInformation>());
-                    if thread_offset + std::mem::size_of::<SystemThreadInformation>() <= buffer.len() {
-                        let thread_info = &*(buffer.as_ptr().add(thread_offset) as *const SystemThreadInformation);
+                    let thread_offset = threads_start
+                        + (i as usize * std::mem::size_of::<SystemThreadInformation>());
+                    if thread_offset + std::mem::size_of::<SystemThreadInformation>()
+                        <= buffer.len()
+                    {
+                        let thread_info = &*(buffer.as_ptr().add(thread_offset)
+                            as *const SystemThreadInformation);
 
                         // Check if thread is in wait state and wait reason is suspended
-                        if thread_info.thread_state == THREAD_STATE_WAIT && thread_info.wait_reason == THREAD_WAIT_REASON_SUSPENDED {
+                        if thread_info.thread_state == THREAD_STATE_WAIT
+                            && thread_info.wait_reason == THREAD_WAIT_REASON_SUSPENDED
+                        {
                             suspended_threads += 1;
                         }
                     }
@@ -677,14 +744,16 @@ pub fn is_process_suspended(pid: u32) -> Result<bool> {
 
     // Read process state from /proc/[pid]/stat
     let stat_path = format!("/proc/{}/stat", pid);
-    let stat_content = fs::read_to_string(&stat_path)
-        .map_err(|e| ProcessControlError::NotFound(pid))?;
+    let stat_content =
+        fs::read_to_string(&stat_path).map_err(|e| ProcessControlError::NotFound(pid))?;
 
     // The process state is the 3rd field in /proc/[pid]/stat
     // State can be: R (running), S (sleeping), D (disk sleep), T (stopped), etc.
     let fields: Vec<&str> = stat_content.split_whitespace().collect();
     if fields.len() < 3 {
-        return Err(ProcessControlError::OpenError("Invalid /proc/[pid]/stat format".to_string()));
+        return Err(ProcessControlError::OpenError(
+            "Invalid /proc/[pid]/stat format".to_string(),
+        ));
     }
 
     let state = fields[2];
@@ -735,7 +804,9 @@ pub fn get_all_processes_info() -> Result<Vec<ProcessInfo>> {
         );
 
         if status != STATUS_INFO_LENGTH_MISMATCH {
-            return Err(ProcessControlError::OpenError("Failed to get buffer size for system information".to_string()));
+            return Err(ProcessControlError::OpenError(
+                "Failed to get buffer size for system information".to_string(),
+            ));
         }
 
         // Allocate buffer with extra space for potential growth
@@ -751,7 +822,10 @@ pub fn get_all_processes_info() -> Result<Vec<ProcessInfo>> {
         );
 
         if status != STATUS_SUCCESS {
-            return Err(ProcessControlError::OpenError(format!("NtQuerySystemInformation failed with status: {:x}", status)));
+            return Err(ProcessControlError::OpenError(format!(
+                "NtQuerySystemInformation failed with status: {:x}",
+                status
+            )));
         }
 
         let mut processes = Vec::new();
@@ -769,7 +843,9 @@ pub fn get_all_processes_info() -> Result<Vec<ProcessInfo>> {
                 let pid = process_info.unique_process_id as u32;
 
                 // Extract process name from Unicode string
-                let process_name = if process_info.image_name.buffer.is_null() || process_info.image_name.length == 0 {
+                let process_name = if process_info.image_name.buffer.is_null()
+                    || process_info.image_name.length == 0
+                {
                     "System".to_string()
                 } else {
                     let name_slice = std::slice::from_raw_parts(
@@ -780,10 +856,15 @@ pub fn get_all_processes_info() -> Result<Vec<ProcessInfo>> {
                 };
 
                 // Get executable path
-                let exe_path = get_process_executable_path(pid).unwrap_or_else(|| "N/A".to_string());
+                let exe_path =
+                    get_process_executable_path(pid).unwrap_or_else(|| "N/A".to_string());
 
                 // Calculate CPU usage
-                let cpu_usage = calculate_cpu_usage(pid, process_info.user_time as u64, process_info.kernel_time as u64);
+                let cpu_usage = calculate_cpu_usage(
+                    pid,
+                    process_info.user_time as u64,
+                    process_info.kernel_time as u64,
+                );
 
                 // Check if any thread is suspended
                 let threads_start = offset + std::mem::size_of::<SystemProcessInformation>();
@@ -791,22 +872,28 @@ pub fn get_all_processes_info() -> Result<Vec<ProcessInfo>> {
                 let total_threads = process_info.number_of_threads;
 
                 for i in 0..total_threads {
-                    let thread_offset = threads_start + (i as usize * std::mem::size_of::<SystemThreadInformation>());
-                    if thread_offset + std::mem::size_of::<SystemThreadInformation>() <= buffer.len() {
-                        let thread_info = &*(buffer.as_ptr().add(thread_offset) as *const SystemThreadInformation);
+                    let thread_offset = threads_start
+                        + (i as usize * std::mem::size_of::<SystemThreadInformation>());
+                    if thread_offset + std::mem::size_of::<SystemThreadInformation>()
+                        <= buffer.len()
+                    {
+                        let thread_info = &*(buffer.as_ptr().add(thread_offset)
+                            as *const SystemThreadInformation);
 
                         // Check if thread is in wait state and wait reason is suspended
-                        if thread_info.thread_state == THREAD_STATE_WAIT && thread_info.wait_reason == THREAD_WAIT_REASON_SUSPENDED {
+                        if thread_info.thread_state == THREAD_STATE_WAIT
+                            && thread_info.wait_reason == THREAD_WAIT_REASON_SUSPENDED
+                        {
                             suspended_threads += 1;
                         }
                     }
                 }
 
                 let proc_info = ProcessInfo {
-                    pid: pid,
+                    pid,
                     parent_pid: process_info.inherited_from_unique_process_id as u32,
                     name: process_name,
-                    exe_path: exe_path,
+                    exe_path,
                     cpu_time_user: process_info.user_time as u64,
                     cpu_time_kernel: process_info.kernel_time as u64,
                     cpu_usage_percent: cpu_usage,
@@ -899,14 +986,18 @@ fn convert_device_path_to_drive_path(device_path: &str) -> Option<String> {
             if drive.len() >= 2 {
                 let drive_letter = &drive[..2]; // e.g., "C:"
                 let mut device_buffer = [0u16; 256];
-                let drive_letter_wide: Vec<u16> = drive_letter.encode_utf16().chain(std::iter::once(0)).collect();
+                let drive_letter_wide: Vec<u16> = drive_letter
+                    .encode_utf16()
+                    .chain(std::iter::once(0))
+                    .collect();
                 let device_len = QueryDosDeviceW(
                     PCWSTR::from_raw(drive_letter_wide.as_ptr()),
                     Some(&mut device_buffer),
                 );
 
                 if device_len > 0 {
-                    let device_name = String::from_utf16_lossy(&device_buffer[..device_len as usize]);
+                    let device_name =
+                        String::from_utf16_lossy(&device_buffer[..device_len as usize]);
                     let device_name = device_name.trim_end_matches('\0');
 
                     if device_path.starts_with(device_name) {
@@ -929,7 +1020,10 @@ fn calculate_cpu_usage(pid: u32, user_time: u64, kernel_time: u64) -> f64 {
     let mut cache = CPU_USAGE_CACHE.lock().unwrap();
 
     if let Some((last_total_time, _last_user_time, last_timestamp)) = cache.get(&pid) {
-        let time_delta = current_time.duration_since(*last_timestamp).unwrap_or_default().as_secs_f64();
+        let time_delta = current_time
+            .duration_since(*last_timestamp)
+            .unwrap_or_default()
+            .as_secs_f64();
         let cpu_time_delta = current_total_time.saturating_sub(*last_total_time);
 
         // Convert FILETIME (100ns units) to seconds and calculate percentage
@@ -1003,7 +1097,8 @@ mod tests {
 pub fn get_process_detailed_info(pid: u32) -> Result<ProcessInfo> {
     let all_processes = get_all_processes_info()?;
 
-    all_processes.into_iter()
+    all_processes
+        .into_iter()
         .find(|p| p.pid == pid)
         .ok_or(ProcessControlError::NotFound(pid))
 }
@@ -1013,10 +1108,13 @@ pub fn get_process_detailed_info(pid: u32) -> Result<ProcessInfo> {
     // Fallback implementation using sysinfo
     use crate::shared::system::get_system;
 
-    let mut system = get_system().lock().map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
     system.refresh_all();
 
-    let process = system.process(Pid::from(pid as usize))
+    let process = system
+        .process(Pid::from(pid as usize))
         .ok_or(ProcessControlError::NotFound(pid))?;
 
     let is_suspended = is_process_suspended(pid).unwrap_or(false);
@@ -1025,24 +1123,25 @@ pub fn get_process_detailed_info(pid: u32) -> Result<ProcessInfo> {
         pid,
         parent_pid: process.parent().map(|p| p.as_u32()).unwrap_or(0),
         name: process.name().to_string_lossy().into_owned(),
-        exe_path: process.exe()
+        exe_path: process
+            .exe()
             .map(|p| p.to_string_lossy().into_owned())
             .unwrap_or_else(|| "N/A".to_string()),
-        cpu_time_user: 0, // Not available through sysinfo
+        cpu_time_user: 0,   // Not available through sysinfo
         cpu_time_kernel: 0, // Not available through sysinfo
         cpu_usage_percent: process.cpu_usage() as f64,
         memory_working_set: process.memory(),
         memory_private: 0, // Not available through sysinfo
         memory_virtual: process.virtual_memory(),
         memory_pagefile: 0, // Not available through sysinfo
-        handle_count: 0, // Not available through sysinfo
-        thread_count: 0, // Not available through sysinfo
+        handle_count: 0,    // Not available through sysinfo
+        thread_count: 0,    // Not available through sysinfo
         is_suspended,
-        create_time: 0, // Not easily available through sysinfo
-        session_id: 0, // Not available through sysinfo
-        io_read_bytes: 0, // Not available through sysinfo
-        io_write_bytes: 0, // Not available through sysinfo
-        io_read_operations: 0, // Not available through sysinfo
+        create_time: 0,         // Not easily available through sysinfo
+        session_id: 0,          // Not available through sysinfo
+        io_read_bytes: 0,       // Not available through sysinfo
+        io_write_bytes: 0,      // Not available through sysinfo
+        io_read_operations: 0,  // Not available through sysinfo
         io_write_operations: 0, // Not available through sysinfo
     })
 }
@@ -1052,7 +1151,8 @@ pub fn get_child_processes(parent_pid: u32) -> Result<Vec<ProcessInfo>> {
     #[cfg(target_os = "windows")]
     {
         let all_processes = get_all_processes_info()?;
-        let children = all_processes.into_iter()
+        let children = all_processes
+            .into_iter()
             .filter(|p| p.parent_pid == parent_pid)
             .collect();
         Ok(children)
@@ -1062,7 +1162,9 @@ pub fn get_child_processes(parent_pid: u32) -> Result<Vec<ProcessInfo>> {
     {
         use crate::shared::system::get_system;
 
-        let mut system = get_system().lock().map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
+        let mut system = get_system()
+            .lock()
+            .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
         system.refresh_all();
 
         let mut children = Vec::new();
@@ -1077,7 +1179,8 @@ pub fn get_child_processes(parent_pid: u32) -> Result<Vec<ProcessInfo>> {
                         pid: child_pid,
                         parent_pid,
                         name: process.name().to_string_lossy().into_owned(),
-                        exe_path: process.exe()
+                        exe_path: process
+                            .exe()
                             .map(|p| p.to_string_lossy().into_owned())
                             .unwrap_or_else(|| "N/A".to_string()),
                         cpu_time_user: 0,

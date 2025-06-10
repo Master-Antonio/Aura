@@ -15,7 +15,9 @@ pub fn get_system() -> &'static Arc<Mutex<System>> {
 
 /// Refresh the system and return a lock guard
 pub fn refresh_and_lock() -> Result<std::sync::MutexGuard<'static, System>, String> {
-    let mut system = SYSTEM.lock().map_err(|e| format!("Failed to lock system: {}", e))?;
+    let mut system = SYSTEM
+        .lock()
+        .map_err(|e| format!("Failed to lock system: {}", e))?;
     system.refresh_all();
     Ok(system)
 }

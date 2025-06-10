@@ -2,6 +2,7 @@ pub mod children_processes;
 pub mod cpu;
 pub mod disk_io;
 pub mod env_vars;
+pub mod gpu;
 pub mod memory;
 pub mod name;
 pub mod parent_pid;

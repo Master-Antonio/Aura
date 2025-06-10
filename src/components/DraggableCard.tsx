@@ -96,7 +96,6 @@ const DraggableCard: React.FC<DraggableCardProps> = React.memo(
   ({ id, index, children, onMove, className }) => {
     const ref = useRef<HTMLDivElement>(null);
     const handleRef = useRef<HTMLDivElement>(null);
-    
     const [{ isDragging }, drag] = useDrag({
       type: "CARD",
       item: () => {
@@ -122,7 +121,7 @@ const DraggableCard: React.FC<DraggableCardProps> = React.memo(
         const hoverMiddleY =
           (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
         // Get the mouse position relative to the drop target
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;        // Only perform the move when the mouse has crossed half of the item's height
+        const hoverClientY = clientOffset.y - hoverBoundingRect.top; // Only perform the move when the mouse has crossed half of the item's height
         // When dragging downwards, only move when the cursor is below 50%
         // When dragging upwards, only move when the cursor is above 50%
         if (item.index < index && hoverClientY > hoverMiddleY) return;

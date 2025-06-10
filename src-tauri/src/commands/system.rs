@@ -21,21 +21,24 @@ pub fn get_system_stats() -> std::result::Result<SystemStats, String> {
         format!("{} minutes", minutes)
     };
 
-    let generic_data = vec![GenericData {
-        title: "OS".to_string(),
-        value: format!("{} {}",
-                       System::name().unwrap_or("Unknown".to_string()),
-                       System::os_version().unwrap_or("Unknown".to_string())
-        ),
-    },
-                            GenericData {
-                                title: "Uptime".to_string(),
-                                value: uptime_str,
-                            },
-                            GenericData {
-                                title: "CPU Cores".to_string(),
-                                value: system.cpus().len().to_string(),
-                            }, GenericData {
+    let generic_data = vec![
+        GenericData {
+            title: "OS".to_string(),
+            value: format!(
+                "{} {}",
+                System::name().unwrap_or("Unknown".to_string()),
+                System::os_version().unwrap_or("Unknown".to_string())
+            ),
+        },
+        GenericData {
+            title: "Uptime".to_string(),
+            value: uptime_str,
+        },
+        GenericData {
+            title: "CPU Cores".to_string(),
+            value: system.cpus().len().to_string(),
+        },
+        GenericData {
             title: "Hostname".to_string(),
             value: System::host_name().unwrap_or("Unknown".to_string()),
         },

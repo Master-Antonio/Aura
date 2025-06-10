@@ -1,6 +1,6 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
     <!-- Gaming-focused design with circuit/tech elements and larger elegant A -->
-    
+
     <!-- Gradient background -->
     <defs>
         <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -8,23 +8,24 @@
             <stop offset="100%" style="stop-color:#1E293B"/>
         </linearGradient>
     </defs>
-    
+
     <!-- Rounded square background -->
     <rect x="32" y="32" width="448" height="448" rx="90" fill="url(#bg)"/>
-    
+
     <!-- Central elegant "A" with circuit pattern - larger but not too thick -->
-    <path d="M 180 380 L 220 180 L 292 180 L 332 380 L 300 380 L 290 340 L 222 340 L 212 380 Z M 235 260 L 277 260 L 256 220 Z" fill="#06B6D4"/>
-    
+    <path d="M 180 380 L 220 180 L 292 180 L 332 380 L 300 380 L 290 340 L 222 340 L 212 380 Z M 235 260 L 277 260 L 256 220 Z"
+          fill="#06B6D4"/>
+
     <!-- Circuit lines extending from the A -->
     <line x1="180" y1="340" x2="140" y2="340" stroke="#06B6D4" stroke-width="4" opacity="0.7"/>
     <line x1="332" y1="340" x2="372" y2="340" stroke="#06B6D4" stroke-width="4" opacity="0.7"/>
     <line x1="256" y1="180" x2="256" y2="140" stroke="#06B6D4" stroke-width="4" opacity="0.7"/>
-    
+
     <!-- Circuit nodes -->
     <circle cx="140" cy="340" r="8" fill="#10B981"/>
     <circle cx="372" cy="340" r="8" fill="#F59E0B"/>
     <circle cx="256" cy="140" r="8" fill="#EF4444"/>
-      <!-- Gaming controller buttons in corners - moved closer to edges -->
+    <!-- Gaming controller buttons in corners - moved closer to edges -->
     <circle cx="80" cy="80" r="12" fill="#8B5CF6" opacity="0.8"/>
     <circle cx="432" cy="80" r="12" fill="#8B5CF6" opacity="0.8"/>
     <circle cx="80" cy="432" r="12" fill="#8B5CF6" opacity="0.8"/>

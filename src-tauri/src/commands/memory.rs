@@ -3,20 +3,22 @@ use sysinfo::System;
 use tauri::command;
 
 #[cfg(target_os = "windows")]
-fn get_memory_details() -> Vec<GenericData> {    use std::process::Command;
-    
+fn get_memory_details() -> Vec<GenericData> {
+    use std::process::Command;
+
     let mut details = Vec::new();
-    
+
     // Get memory modules info using wmic with enhanced information
     let output = Command::new("wmic")
         .args(&["memorychip", "get", "BankLabel,Capacity,Speed,Manufacturer,PartNumber,ConfiguredClockSpeed,DataWidth,TypeDetail,FormFactor", "/format:csv"])
         .output();
-    
+
     if let Ok(output) = output {
         let output_str = String::from_utf8_lossy(&output.stdout);
         let lines: Vec<&str> = output_str.lines().collect();
-        
-        for line in lines.iter().skip(1) { // Skip header
+
+        for line in lines.iter().skip(1) {
+            // Skip header
             if !line.trim().is_empty() && line.contains(',') {
                 let parts: Vec<&str> = line.split(',').collect();
                 if parts.len() >= 10 {
@@ -29,42 +31,57 @@ fn get_memory_details() -> Vec<GenericData> {    use std::process::Command;
                     let part_number = parts[7].trim();
                     let max_speed = parts[8].trim();
                     let type_detail = parts[9].trim();
-                    
+
                     if !bank.is_empty() && !capacity.is_empty() {
                         if let Ok(capacity_bytes) = capacity.parse::<u64>() {
                             let capacity_gb = capacity_bytes / (1024 * 1024 * 1024);
-                            
+
                             // Use configured speed if available, otherwise use max speed
                             let speed = if !configured_speed.is_empty() && configured_speed != "0" {
                                 configured_speed
                             } else {
                                 max_speed
                             };
-                            
+
                             // Determine memory type from type detail
-                            let memory_type = if type_detail.contains("512") || type_detail.contains("1024") {
-                                "DDR5"
-                            } else if type_detail.contains("64") {
-                                "DDR4"
-                            } else if type_detail.contains("32") {
-                                "DDR3"
-                            } else {
-                                "DDR4" // Default assumption
-                            };
-                            
+                            let memory_type =
+                                if type_detail.contains("512") || type_detail.contains("1024") {
+                                    "DDR5"
+                                } else if type_detail.contains("64") {
+                                    "DDR4"
+                                } else if type_detail.contains("32") {
+                                    "DDR3"
+                                } else {
+                                    "DDR4" // Default assumption
+                                };
+
                             // Determine form factor
                             let form_factor_name = match form_factor {
                                 "8" => "DIMM",
                                 "12" => "SO-DIMM",
                                 _ => "DIMM",
                             };
-                            
-                            let manufacturer_clean = if manufacturer.is_empty() { "Unknown" } else { manufacturer };
-                            let part_clean = if part_number.is_empty() { "Unknown" } else { part_number };
-                            
+
+                            let manufacturer_clean = if manufacturer.is_empty() {
+                                "Unknown"
+                            } else {
+                                manufacturer
+                            };
+                            let part_clean = if part_number.is_empty() {
+                                "Unknown"
+                            } else {
+                                part_number
+                            };
+
                             details.push(GenericData {
-                                title: format!("{} - {} {} {}", bank, memory_type, form_factor_name, manufacturer_clean),
-                                value: format!("{} GB @ {} MHz - {} | {}-bit", capacity_gb, speed, part_clean, data_width),
+                                title: format!(
+                                    "{} - {} {} {}",
+                                    bank, memory_type, form_factor_name, manufacturer_clean
+                                ),
+                                value: format!(
+                                    "{} GB @ {} MHz - {} | {}-bit",
+                                    capacity_gb, speed, part_clean, data_width
+                                ),
                             });
                         }
                     }
@@ -72,7 +89,7 @@ fn get_memory_details() -> Vec<GenericData> {    use std::process::Command;
             }
         }
     }
-    
+
     // If no detailed memory modules found, add system-level memory info
     if details.is_empty() {
         details.push(GenericData {
@@ -80,7 +97,7 @@ fn get_memory_details() -> Vec<GenericData> {    use std::process::Command;
             value: "System RAM @ Standard Speed".to_string(),
         });
     }
-    
+
     details
 }
 
@@ -125,7 +142,7 @@ pub fn get_memory_stats() -> SystemStats {
 
     // Get detailed memory information (modules, temperature, etc.)
     let mut detailed_info = get_memory_details();
-    
+
     // Add basic memory stats
     let mut generic_data = vec![
         GenericData {
@@ -163,7 +180,7 @@ pub fn get_memory_stats() -> SystemStats {
     }
 
     // Append detailed memory information
-    generic_data.append(&mut detailed_info);    // Create progress data for memory modules navigation
+    generic_data.append(&mut detailed_info); // Create progress data for memory modules navigation
     let progress_data = if detailed_info.len() > 1 {
         // Multiple memory modules - create progress data for navigation
         let mut module_progress = Vec::new();
@@ -174,7 +191,7 @@ pub fn get_memory_stats() -> SystemStats {
             } else {
                 memory_percentage as f32 * 0.8 // Secondary modules show slightly less
             };
-            
+
             module_progress.push(ProgressData {
                 title: module.title.clone(),
                 value: module_usage,
@@ -198,13 +215,11 @@ pub fn get_memory_stats() -> SystemStats {
         ])
     } else {
         // Single module - show just RAM
-        Some(vec![
-            ProgressData {
-                title: "RAM Usage".to_string(),
-                value: memory_percentage as f32,
-                temperature: Some(42.0),
-            },
-        ])
+        Some(vec![ProgressData {
+            title: "RAM Usage".to_string(),
+            value: memory_percentage as f32,
+            temperature: Some(42.0),
+        }])
     };
 
     SystemStats {

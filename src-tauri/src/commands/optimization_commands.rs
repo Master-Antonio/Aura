@@ -18,19 +18,25 @@ pub struct PlatformInfo {
 #[command]
 pub async fn get_available_optimizations() -> Result<Vec<OptimizationCategory>, String> {
     let service = OPTIMIZATION_SERVICE.lock().map_err(|e| e.to_string())?;
-    service.get_available_optimizations().map_err(|e| e.to_string())
+    service
+        .get_available_optimizations()
+        .map_err(|e| e.to_string())
 }
 
 #[command]
 pub async fn apply_optimization(optimization_id: String) -> Result<OptimizationResult, String> {
     let service = OPTIMIZATION_SERVICE.lock().map_err(|e| e.to_string())?;
-    service.apply_optimization(&optimization_id).map_err(|e| e.to_string())
+    service
+        .apply_optimization(&optimization_id)
+        .map_err(|e| e.to_string())
 }
 
 #[command]
 pub async fn revert_optimization(optimization_id: String) -> Result<OptimizationResult, String> {
     let service = OPTIMIZATION_SERVICE.lock().map_err(|e| e.to_string())?;
-    service.revert_optimization(&optimization_id).map_err(|e| e.to_string())
+    service
+        .revert_optimization(&optimization_id)
+        .map_err(|e| e.to_string())
 }
 
 #[command]

@@ -74,7 +74,12 @@ pub fn parse_time_string(time_str: &str) -> Result<u64> {
             "h" => total_seconds += value * 3600,
             "m" => total_seconds += value * 60,
             "s" => total_seconds += value,
-            _ => return Err(TimeError::InvalidTime(format!("Invalid time unit: {}", unit))),
+            _ => {
+                return Err(TimeError::InvalidTime(format!(
+                    "Invalid time unit: {}",
+                    unit
+                )))
+            }
         }
     }
 

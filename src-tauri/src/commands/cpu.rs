@@ -1,7 +1,10 @@
 use crate::models::system_stats::{GenericData, ProgressData, SystemStats};
 use anyhow;
-use std::{sync::{Arc, Mutex}, time::Duration};
-use sysinfo::{System, Components};
+use std::{
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use sysinfo::{Components, System};
 use tauri::command;
 use tauri::ipc::InvokeError;
 use thiserror::Error;
@@ -69,12 +72,13 @@ pub fn get_cpu_stats() -> std::result::Result<SystemStats, String> {
             let global_usage = system.global_cpu_usage();
 
             // Get CPU model name
-            let cpu_brand = cpus.first()
+            let cpu_brand = cpus
+                .first()
                 .map(|cpu| cpu.brand().to_string())
-                .unwrap_or_else(|| "Unknown CPU".to_string());            // Get temperatures from components
+                .unwrap_or_else(|| "Unknown CPU".to_string()); // Get temperatures from components
             let mut components = Components::new_with_refreshed_list();
             components.refresh(false);
-            
+
             let cpu_temps: Vec<f32> = components
                 .iter()
                 .filter(|component| {
@@ -93,15 +97,23 @@ pub fn get_cpu_stats() -> std::result::Result<SystemStats, String> {
 
             // Get frequency info
             let base_freq = cpus.first().map(|cpu| cpu.frequency()).unwrap_or(0);
-            let max_freq = cpus.iter().map(|cpu| cpu.frequency()).max().unwrap_or(0);            // Create progress data for individual cores with temperatures
-            let progress_data: Vec<ProgressData> = cpus.iter().enumerate().map(|(i, cpu)| {
-                let core_temp = cpu_temps.get(i).copied().unwrap_or(0.0);
-                ProgressData {
-                    title: format!("Core {}", i + 1),
-                    value: cpu.cpu_usage(),
-                    temperature: if core_temp > 0.0 { Some(core_temp) } else { None },
-                }
-            }).collect();            // Create detailed generic data
+            let max_freq = cpus.iter().map(|cpu| cpu.frequency()).max().unwrap_or(0); // Create progress data for individual cores with temperatures
+            let progress_data: Vec<ProgressData> = cpus
+                .iter()
+                .enumerate()
+                .map(|(i, cpu)| {
+                    let core_temp = cpu_temps.get(i).copied().unwrap_or(0.0);
+                    ProgressData {
+                        title: format!("Core {}", i + 1),
+                        value: cpu.cpu_usage(),
+                        temperature: if core_temp > 0.0 {
+                            Some(core_temp)
+                        } else {
+                            None
+                        },
+                    }
+                })
+                .collect(); // Create detailed generic data
             let generic_data = vec![
                 GenericData {
                     title: "Model".to_string(),
@@ -136,19 +148,15 @@ pub fn get_cpu_stats() -> std::result::Result<SystemStats, String> {
                 generic_data: Some(generic_data),
             })
         }
-        Err(_) => {
-            Ok(SystemStats {
-                title: "CPU Usage".to_string(),
-                percentage: Some(0.0),
-                progress_data: None,
-                generic_data: Some(vec![
-                    GenericData {
-                        title: "Error".to_string(),
-                        value: "Unable to get CPU stats".to_string(),
-                    }
-                ]),
-            })
-        }
+        Err(_) => Ok(SystemStats {
+            title: "CPU Usage".to_string(),
+            percentage: Some(0.0),
+            progress_data: None,
+            generic_data: Some(vec![GenericData {
+                title: "Error".to_string(),
+                value: "Unable to get CPU stats".to_string(),
+            }]),
+        }),
     }
 }
 
@@ -162,7 +170,8 @@ fn measure_cpu_usage(system: &mut System) -> Result<CpuStats> {
         return Err(CpuError::NoCoresError);
     }
 
-    let global_usage = system.global_cpu_usage();    let core_loads = cpus
+    let global_usage = system.global_cpu_usage();
+    let core_loads = cpus
         .iter()
         .enumerate()
         .map(|(i, cpu)| ProgressData {

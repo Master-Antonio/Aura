@@ -58,4 +58,4 @@ mod tests {
         assert_eq!(format_bytes_per_second(1024), "1.00 KB/s");
         assert_eq!(format_bytes_per_second(1048576), "1.00 MB/s");
     }
-} 
+}

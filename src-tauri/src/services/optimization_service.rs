@@ -1,4 +1,6 @@
-use crate::models::optimization::{OptimizationCategory, OptimizationItem, OptimizationResult, Platform, RiskLevel};
+use crate::models::optimization::{
+    OptimizationCategory, OptimizationItem, OptimizationResult, Platform, RiskLevel,
+};
 use anyhow::Result;
 
 pub struct OptimizationService {
@@ -50,7 +52,8 @@ impl OptimizationService {
             OptimizationItem {
                 id: "disable_game_dvr".to_string(),
                 name: "Disable Game DVR".to_string(),
-                description: "Disables Windows Game DVR which can cause performance issues".to_string(),
+                description: "Disables Windows Game DVR which can cause performance issues"
+                    .to_string(),
                 category: "Gaming Performance".to_string(),
                 is_applied: self.check_game_dvr_status(),
                 is_reversible: true,
@@ -61,7 +64,8 @@ impl OptimizationService {
             OptimizationItem {
                 id: "disable_fullscreen_optimization".to_string(),
                 name: "Disable Fullscreen Optimization".to_string(),
-                description: "Disables fullscreen optimization for better gaming performance".to_string(),
+                description: "Disables fullscreen optimization for better gaming performance"
+                    .to_string(),
                 category: "Gaming Performance".to_string(),
                 is_applied: false,
                 is_reversible: true,
@@ -83,7 +87,8 @@ impl OptimizationService {
             OptimizationItem {
                 id: "high_performance_power_plan".to_string(),
                 name: "High Performance Power Plan".to_string(),
-                description: "Sets power plan to High Performance for maximum CPU performance".to_string(),
+                description: "Sets power plan to High Performance for maximum CPU performance"
+                    .to_string(),
                 category: "Gaming Performance".to_string(),
                 is_applied: false,
                 is_reversible: true,
@@ -218,12 +223,14 @@ impl OptimizationService {
             items: gaming_items,
         });
 
-        // System Performance Category  
+        // System Performance Category
         let system_items = vec![
             OptimizationItem {
                 id: "disable_compositor".to_string(),
                 name: "Disable Desktop Compositor".to_string(),
-                description: "Temporarily disables desktop compositor during gaming for better performance".to_string(),
+                description:
+                "Temporarily disables desktop compositor during gaming for better performance"
+                    .to_string(),
                 category: "System Performance".to_string(),
                 is_applied: false,
                 is_reversible: true,
@@ -256,19 +263,18 @@ impl OptimizationService {
         let mut categories = Vec::new();
 
         // Gaming Performance Category
-        let gaming_items = vec![
-            OptimizationItem {
-                id: "disable_spotlight".to_string(),
-                name: "Disable Spotlight Indexing".to_string(),
-                description: "Temporarily disables Spotlight indexing for better performance".to_string(),
-                category: "Gaming Performance".to_string(),
-                is_applied: false,
-                is_reversible: true,
-                requires_admin: true,
-                risk_level: RiskLevel::Medium,
-                platform: Platform::MacOS,
-            },
-        ];
+        let gaming_items = vec![OptimizationItem {
+            id: "disable_spotlight".to_string(),
+            name: "Disable Spotlight Indexing".to_string(),
+            description: "Temporarily disables Spotlight indexing for better performance"
+                .to_string(),
+            category: "Gaming Performance".to_string(),
+            is_applied: false,
+            is_reversible: true,
+            requires_admin: true,
+            risk_level: RiskLevel::Medium,
+            platform: Platform::MacOS,
+        }];
 
         categories.push(OptimizationCategory {
             name: "Gaming Performance".to_string(),
@@ -282,19 +288,18 @@ impl OptimizationService {
         let mut categories = Vec::new();
 
         // Process Management Category
-        let process_items = vec![
-            OptimizationItem {
-                id: "set_high_priority".to_string(),
-                name: "High Priority Mode".to_string(),
-                description: "Runs the application with high priority for better performance".to_string(),
-                category: "Process Management".to_string(),
-                is_applied: false,
-                is_reversible: true,
-                requires_admin: false,
-                risk_level: RiskLevel::Low,
-                platform: Platform::All,
-            },
-        ];
+        let process_items = vec![OptimizationItem {
+            id: "set_high_priority".to_string(),
+            name: "High Priority Mode".to_string(),
+            description: "Runs the application with high priority for better performance"
+                .to_string(),
+            category: "Process Management".to_string(),
+            is_applied: false,
+            is_reversible: true,
+            requires_admin: false,
+            risk_level: RiskLevel::Low,
+            platform: Platform::All,
+        }];
 
         categories.push(OptimizationCategory {
             name: "Process Management".to_string(),
@@ -438,7 +443,8 @@ impl OptimizationService {
                     if result.status.success() {
                         Ok(OptimizationResult {
                             success: true,
-                            message: "High Performance power plan activated successfully".to_string(),
+                            message: "High Performance power plan activated successfully"
+                                .to_string(),
                             needs_restart: false,
                         })
                     } else {
@@ -454,7 +460,7 @@ impl OptimizationService {
                     success: false,
                     message: format!("Failed to execute powercfg command: {}", e),
                     needs_restart: false,
-                })
+                }),
             }
         }
         #[cfg(not(target_os = "windows"))]
@@ -596,7 +602,7 @@ impl OptimizationService {
                     success: false,
                     message: format!("Failed to execute memory clear command: {}", e),
                     needs_restart: false,
-                })
+                }),
             }
         }
         #[cfg(not(target_os = "windows"))]
@@ -614,9 +620,7 @@ impl OptimizationService {
         {
             use std::process::Command;
 
-            let output = Command::new("ipconfig")
-                .args(&["/flushdns"])
-                .output();
+            let output = Command::new("ipconfig").args(&["/flushdns"]).output();
 
             match output {
                 Ok(result) => {
@@ -639,7 +643,7 @@ impl OptimizationService {
                     success: false,
                     message: format!("Failed to execute DNS flush command: {}", e),
                     needs_restart: false,
-                })
+                }),
             }
         }
         #[cfg(not(target_os = "windows"))]

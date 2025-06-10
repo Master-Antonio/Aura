@@ -50,7 +50,9 @@ impl RegistryCache {
 
 #[command]
 pub fn disable_game_dvr(enable: bool) -> Result<()> {
-    let mut cache = REGISTRY_CACHE.lock().map_err(|e| OptimizationError::RegistryError(e.to_string()))?;
+    let mut cache = REGISTRY_CACHE
+        .lock()
+        .map_err(|e| OptimizationError::RegistryError(e.to_string()))?;
 
     // Controlla la cache
     if cache.game_dvr_state == Some(enable) {
@@ -70,7 +72,9 @@ pub fn disable_game_dvr(enable: bool) -> Result<()> {
 
 #[command]
 pub fn optimize_interrupt_affinity(enable: bool) -> Result<()> {
-    let mut cache = REGISTRY_CACHE.lock().map_err(|e| OptimizationError::RegistryError(e.to_string()))?;
+    let mut cache = REGISTRY_CACHE
+        .lock()
+        .map_err(|e| OptimizationError::RegistryError(e.to_string()))?;
 
     if cache.irq_priority_state == Some(enable) {
         return Ok(());
@@ -82,7 +86,8 @@ pub fn optimize_interrupt_affinity(enable: bool) -> Result<()> {
         modify_registry(reg_path, "IRQ8Priority", "1")
     } else {
         delete_registry_value(reg_path, "IRQ8Priority")
-    }.map_err(|e| OptimizationError::RegistryError(e))?;
+    }
+        .map_err(|e| OptimizationError::RegistryError(e))?;
 
     cache.irq_priority_state = Some(enable);
     Ok(())
@@ -108,17 +113,7 @@ pub fn optimize_time_resolution(enable: bool) -> Result<()> {
 
 fn modify_registry(path: &str, key: &str, value: &str) -> std::result::Result<(), String> {
     let output = Command::new("reg")
-        .args(&[
-            "add",
-            path,
-            "/v",
-            key,
-            "/t",
-            "REG_DWORD",
-            "/d",
-            value,
-            "/f",
-        ])
+        .args(&["add", path, "/v", key, "/t", "REG_DWORD", "/d", value, "/f"])
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -131,13 +126,7 @@ fn modify_registry(path: &str, key: &str, value: &str) -> std::result::Result<()
 
 fn delete_registry_value(path: &str, key: &str) -> std::result::Result<(), String> {
     let output = Command::new("reg")
-        .args(&[
-            "delete",
-            path,
-            "/v",
-            key,
-            "/f",
-        ])
+        .args(&["delete", path, "/v", key, "/f"])
         .output()
         .map_err(|e| e.to_string())?;
 
@@ -167,6 +156,9 @@ mod tests {
         #[cfg(target_os = "windows")]
         assert!(result.is_ok());
         #[cfg(not(target_os = "windows"))]
-        assert!(matches!(result, Err(OptimizationError::UnsupportedPlatform)));
+        assert!(matches!(
+            result,
+            Err(OptimizationError::UnsupportedPlatform)
+        ));
     }
 }

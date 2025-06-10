@@ -1,7 +1,7 @@
-pub mod loaded_module;
-pub mod time;
 pub mod bytes;
+pub mod loaded_module;
 pub mod system;
+pub mod time;
 
 pub use bytes::{format_bytes, format_bytes_per_second};
 pub use system::{get_cpu_count, get_memory_info};

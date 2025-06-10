@@ -212,7 +212,11 @@ export const ProcessControls: React.FC<ProcessControlsProps> = ({
             value={localFilter.minCpu || ""}
             onChange={handleLocalMinCpuChange}
             fullWidth
-            inputProps={{ min: 0, step: 0.1 }}
+            slotProps={{
+              input: {
+                inputProps: { min: 0, step: 0.1 },
+              },
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "#0a0b11",
@@ -250,7 +254,11 @@ export const ProcessControls: React.FC<ProcessControlsProps> = ({
             }
             onChange={handleLocalMinMemoryChange}
             fullWidth
-            inputProps={{ min: 0, step: 1 }}
+            slotProps={{
+              input: {
+                inputProps: { min: 0, step: 1 },
+              },
+            }}
             sx={{
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "#0a0b11",

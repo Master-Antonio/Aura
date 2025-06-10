@@ -1,33 +1,33 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
     <!-- Performance monitoring icon with CPU/gaming elements -->
-    
+
     <!-- Rounded square background -->
     <rect x="32" y="32" width="448" height="448" rx="90" fill="#1E293B"/>
-    
+
     <!-- Central hexagonal core (like CPU) -->
     <polygon points="256,180 310,210 310,270 256,300 202,270 202,210" fill="#06B6D4" stroke="#0891B2" stroke-width="3"/>
-    
+
     <!-- Four corner performance indicators -->
     <!-- Top left -->
     <rect x="120" y="120" width="6" height="30" rx="3" fill="#10B981"/>
     <rect x="130" y="110" width="6" height="40" rx="3" fill="#10B981"/>
     <rect x="140" y="100" width="6" height="50" rx="3" fill="#10B981"/>
-    
+
     <!-- Top right -->
     <rect x="366" y="120" width="6" height="30" rx="3" fill="#F59E0B"/>
     <rect x="376" y="110" width="6" height="40" rx="3" fill="#F59E0B"/>
     <rect x="386" y="100" width="6" height="50" rx="3" fill="#F59E0B"/>
-    
+
     <!-- Bottom left -->
     <rect x="120" y="362" width="6" height="30" rx="3" fill="#EF4444"/>
     <rect x="130" y="362" width="6" height="40" rx="3" fill="#EF4444"/>
     <rect x="140" y="362" width="6" height="50" rx="3" fill="#EF4444"/>
-    
+
     <!-- Bottom right -->
     <rect x="366" y="362" width="6" height="30" rx="3" fill="#8B5CF6"/>
     <rect x="376" y="352" width="6" height="40" rx="3" fill="#8B5CF6"/>
     <rect x="386" y="342" width="6" height="50" rx="3" fill="#8B5CF6"/>
-    
+
     <!-- Central power symbol -->
     <circle cx="256" cy="240" r="20" fill="#FFFFFF"/>
     <circle cx="256" cy="240" r="12" fill="#1E293B"/>

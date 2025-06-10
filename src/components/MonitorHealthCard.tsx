@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Box,
   Chip,
+  CircularProgress,
   Divider,
   Grid,
-  Typography,
-  Alert,
-  CircularProgress,
-  Tooltip,
   IconButton,
+  Tooltip,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SvgIconComponent } from "@mui/icons-material";
@@ -59,7 +59,6 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
       setLoading(false);
     }
   };
-
   const resetHealth = async () => {
     try {
       await invoke("reset_monitor_health");
@@ -68,15 +67,12 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
       console.error("Failed to reset monitor health:", error);
     }
   };
-
   useEffect(() => {
     fetchHealth();
-    
     // Update health every 10 seconds
     const interval = setInterval(fetchHealth, 10000);
     return () => clearInterval(interval);
   }, []);
-
   if (!health) {
     return (
       <BaseCard icon={icon} title={title}>
@@ -86,38 +82,59 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
       </BaseCard>
     );
   }
-
   const components = [
-    { name: "CPU", healthy: health.cpu_healthy, errors: health.error_counts.cpu || 0 },
-    { name: "Memory", healthy: health.memory_healthy, errors: health.error_counts.memory || 0 },
-    { name: "Storage", healthy: health.storage_healthy, errors: health.error_counts.storage || 0 },
-    { name: "Network", healthy: health.network_healthy, errors: health.error_counts.network || 0 },
-    { name: "GPU", healthy: health.gpu_healthy, errors: health.error_counts.gpu || 0 },
-    { name: "System", healthy: health.system_healthy, errors: health.error_counts.system || 0 },
+    {
+      name: "CPU",
+      healthy: health.cpu_healthy,
+      errors: health.error_counts.cpu || 0,
+    },
+    {
+      name: "Memory",
+      healthy: health.memory_healthy,
+      errors: health.error_counts.memory || 0,
+    },
+    {
+      name: "Storage",
+      healthy: health.storage_healthy,
+      errors: health.error_counts.storage || 0,
+    },
+    {
+      name: "Network",
+      healthy: health.network_healthy,
+      errors: health.error_counts.network || 0,
+    },
+    {
+      name: "GPU",
+      healthy: health.gpu_healthy,
+      errors: health.error_counts.gpu || 0,
+    },
+    {
+      name: "System",
+      healthy: health.system_healthy,
+      errors: health.error_counts.system || 0,
+    },
   ];
-
-  const overallHealthy = components.every(c => c.healthy);
+  const overallHealthy = components.every((c) => c.healthy);
   const totalErrors = components.reduce((sum, c) => sum + c.errors, 0);
-
   const getHealthIcon = (healthy: boolean, errors: number) => {
-    if (healthy && errors === 0) return <CheckCircleIcon color="success" fontSize="small" />;
-    if (healthy && errors > 0) return <WarningIcon color="warning" fontSize="small" />;
+    if (healthy && errors === 0)
+      return <CheckCircleIcon color="success" fontSize="small" />;
+    if (healthy && errors > 0)
+      return <WarningIcon color="warning" fontSize="small" />;
     return <ErrorIcon color="error" fontSize="small" />;
   };
-
   const getHealthColor = (healthy: boolean, errors: number) => {
     if (healthy && errors === 0) return "success";
     if (healthy && errors > 0) return "warning";
     return "error";
   };
-
   return (
     <BaseCard
       icon={icon}
       title={title}
       headerActions={
         <Box display="flex" alignItems="center" gap={1}>
-          <Chip 
+          <Chip
             label={overallHealthy ? "Healthy" : "Issues"}
             size="small"
             color={overallHealthy ? "success" : "error"}
@@ -134,31 +151,46 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
       <Typography variant="body2" color="text.secondary" mb={2}>
         System Monitor Health Status
       </Typography>
-
       {/* Health Summary */}
       <Box mb={2}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1}
+        >
           <Typography variant="caption" color="text.secondary">
             Overall Health
           </Typography>
-          <Typography variant="body2" fontWeight="bold" color={overallHealthy ? "success.main" : "error.main"}>
-            {overallHealthy ? "All Systems Operational" : `${components.filter(c => !c.healthy).length} Issues Detected`}
+          <Typography
+            variant="body2"
+            fontWeight="bold"
+            color={overallHealthy ? "success.main" : "error.main"}
+          >
+            {overallHealthy
+              ? "All Systems Operational"
+              : `${components.filter((c) => !c.healthy).length} Issues Detected`}
           </Typography>
         </Box>
 
         {totalErrors > 0 && (
           <Alert severity={overallHealthy ? "warning" : "error"} sx={{ mb: 2 }}>
-            Total Errors: {totalErrors} | Last Check: {new Date(health.last_health_check * 1000).toLocaleTimeString()}
+            Total Errors: {totalErrors} | Last Check:{" "}
+            {new Date(health.last_health_check * 1000).toLocaleTimeString()}
           </Alert>
         )}
       </Box>
-
-      <Divider sx={{ my: 2 }} />      {/* Component Health Grid */}
+      <Divider sx={{ my: 2 }} /> {/* Component Health Grid */}
       <Grid container spacing={1}>
         {components.map((component) => (
           <Grid key={component.name} size={6}>
             <MetricBox>
-              <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                mb={0.5}
+              >
                 <Box display="flex" alignItems="center" gap={0.5}>
                   {getHealthIcon(component.healthy, component.errors)}
                   <Typography variant="caption" color="text.secondary">
@@ -168,26 +200,27 @@ const MonitorHealthCard: React.FC<MonitorHealthCardProps> = ({
                 <Chip
                   size="small"
                   label={component.healthy ? "OK" : "ERROR"}
-                  color={getHealthColor(component.healthy, component.errors) as any}
+                  color={
+                    getHealthColor(component.healthy, component.errors) as any
+                  }
                 />
               </Box>
               {component.errors > 0 && (
                 <Typography variant="caption" color="text.secondary">
-                  {component.errors} error{component.errors !== 1 ? 's' : ''}
+                  {component.errors} error{component.errors !== 1 ? "s" : ""}
                 </Typography>
               )}
             </MetricBox>
           </Grid>
         ))}
       </Grid>
-
       {/* Performance Tips */}
       <Divider sx={{ my: 2 }} />
       <Typography variant="caption" color="text.secondary">
-        Monitoring refreshes every 10 seconds. High error counts may indicate system stress.
+        Monitoring refreshes every 10 seconds. High error counts may indicate
+        system stress.
       </Typography>
     </BaseCard>
   );
 };
-
 export default MonitorHealthCard;

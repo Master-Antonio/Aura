@@ -26,7 +26,7 @@ sysinfo = { version = "0.35.2", features = ["default", "system", "network", "dis
 window-vibrancy = "0.6.0"
 windows = { version = "0.61.1", features = ["Win32_Foundation", "Win32_System_Threading", "Win32_System_Diagnostics_ToolHelp", "Win32_System_SystemInformation", "Win32_System_Time", "Win32_System_Environment", "Win32_System_ProcessStatus", "Win32_System_Memory", "Win32_System_Diagnostics_Debug", "Win32_System_Registry", "Win32_Graphics_DirectWrite", "Win32_Storage_FileSystem", "Win32_Graphics_Dxgi", "Win32_Graphics_Dxgi_Common"] }
 ntapi = "0.4.1"
-nvml-wrapper = { version = "0.11.0", features = ["serde"], optional = true }
+nvml-wrapper = { version = "0.11.0", features = ["serde"] }
 wgpu = { version = "25.0.2", features = ["dx12", "metal"] }
 tokio = { version = "1.45.1", features = ["rt", "macros", "test-util", "time"] }
 thiserror = "2.0.12"

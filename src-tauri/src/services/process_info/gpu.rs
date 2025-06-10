@@ -1,21 +1,13 @@
+use nvml_wrapper::enums::device::UsedGpuMemory;
+use nvml_wrapper::error::NvmlError;
+use nvml_wrapper::Nvml;
 use std::error::Error;
 use sysinfo::Pid;
 
 pub fn get_gpu_usage() -> Result<(), Box<dyn Error>> {
     // Placeholder implementation - GPU monitoring will be implemented later
-    println!("GPU monitoring not yet implemented");
+    //println!("GPU monitoring not yet implemented");
     Ok(())
-}
-
-pub fn get_gpu_usage_by_pid(pid: Pid) -> Result<Option<String>, Box<dyn Error>> {
-    // Placeholder implementation for per-process GPU usage
-    let _pid = pid; // Avoid unused variable warning
-    Ok(Some("N/A".to_string()))
-}
-
-println!("GPU Utilization: {}%", utilization.gpu);
-println!("Memory Utilization: {}%", utilization.memory);
-Ok(())
 }
 
 pub fn get_gpu_usage_by_pid(pid: Pid) -> Result<Option<UsedGpuMemory>, Box<dyn Error>> {
@@ -30,21 +22,21 @@ pub fn get_gpu_usage_by_pid(pid: Pid) -> Result<Option<UsedGpuMemory>, Box<dyn E
                     return Ok(Some(process.used_gpu_memory));
                 }
             }
-            println!("[INFO] Processo con PID {} non trovato sulla GPU.", pid);
+            //println!("[INFO] Processo con PID {} non trovato sulla GPU.", pid);
             Ok(None)
         }
         Err(NvmlError::NotSupported) => {
-            println!(
+            /*println!(
                 "[WARN] La raccolta delle statistiche di utilizzo del processo non \
                       è supportata dal driver NVML corrente."
-            );
+            );*/
             Err(Box::new(NvmlError::NotSupported))
         }
         Err(e) => {
-            println!(
+            /*println!(
                 "[ERROR] Errore durante la raccolta delle statistiche: {}",
                 e
-            );
+            );*/
             Err(Box::new(e))
         }
     }

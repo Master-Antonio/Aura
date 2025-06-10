@@ -129,17 +129,12 @@ pub fn open_file_location(path: String) -> Result<()> {
             path_obj
         };
 
-        let result = Command::new("explorer")
-            .arg("/select,")
-            .arg(&path)
-            .spawn();
+        let result = Command::new("explorer").arg("/select,").arg(&path).spawn();
         match result {
             Ok(_) => Ok(()),
             Err(_e) => {
                 // Fallback: just open the directory
-                let _ = Command::new("explorer")
-                    .arg(dir)
-                    .spawn();
+                let _ = Command::new("explorer").arg(dir).spawn();
                 Ok(())
             }
         }
@@ -149,10 +144,7 @@ pub fn open_file_location(path: String) -> Result<()> {
     {
         use std::process::Command;
 
-        let result = Command::new("open")
-            .arg("-R")
-            .arg(&path)
-            .spawn();
+        let result = Command::new("open").arg("-R").arg(&path).spawn();
 
         match result {
             Ok(_) => Ok(()),
@@ -197,7 +189,9 @@ pub fn open_file_location(path: String) -> Result<()> {
 
     #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
     {
-        Err(ProcessError::DataError("Platform not supported".to_string()))
+        Err(ProcessError::DataError(
+            "Platform not supported".to_string(),
+        ))
     }
 }
 

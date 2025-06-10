@@ -82,7 +82,9 @@ struct ProcessEntry {
 
 #[command]
 pub fn get_processes(filter: ProcessFilter) -> Result<Vec<SystemStats>> {
-    let mut system = get_system().lock().map_err(|e| ProcessesError::ReadError(e.to_string()))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| ProcessesError::ReadError(e.to_string()))?;
     system.refresh_all();
 
     let processes = system.processes();
@@ -191,32 +193,30 @@ mod tests {
 
 #[command]
 pub fn boost_process_for_gaming(pid: u32) -> Result<()> {
-    process_control::boost_process_for_gaming(pid)
-        .map_err(ProcessesError::ControlError)
+    process_control::boost_process_for_gaming(pid).map_err(ProcessesError::ControlError)
 }
 
 #[command]
 pub fn set_process_affinity(pid: u32, cores: Vec<u32>) -> Result<()> {
-    process_control::set_process_affinity_cores(pid, cores)
-        .map_err(ProcessesError::ControlError)
+    process_control::set_process_affinity_cores(pid, cores).map_err(ProcessesError::ControlError)
 }
 
 #[command]
 pub fn get_process_affinity(pid: u32) -> Result<Vec<u32>> {
-    process_control::get_process_affinity(pid)
-        .map_err(ProcessesError::ControlError)
+    process_control::get_process_affinity(pid).map_err(ProcessesError::ControlError)
 }
 
 #[command]
 pub fn get_cpu_core_count() -> Result<u32> {
-    let system = get_system().lock().map_err(|e| ProcessesError::ReadError(e.to_string()))?;
+    let system = get_system()
+        .lock()
+        .map_err(|e| ProcessesError::ReadError(e.to_string()))?;
     Ok(system.cpus().len() as u32)
 }
 
 #[command]
 pub fn kill_process(pid: u32) -> Result<()> {
-    let result = process_control::kill_process(pid)
-        .map_err(ProcessesError::ControlError);
+    let result = process_control::kill_process(pid).map_err(ProcessesError::ControlError);
 
     // Forza refresh del sistema per rimuovere processi terminati
     if result.is_ok() {
@@ -230,14 +230,12 @@ pub fn kill_process(pid: u32) -> Result<()> {
 
 #[command]
 pub fn suspend_process(pid: u32) -> Result<()> {
-    process_control::suspend_process(pid)
-        .map_err(ProcessesError::ControlError)
+    process_control::suspend_process(pid).map_err(ProcessesError::ControlError)
 }
 
 #[command]
 pub fn resume_process(pid: u32) -> Result<()> {
-    process_control::resume_process(pid)
-        .map_err(ProcessesError::ControlError)
+    process_control::resume_process(pid).map_err(ProcessesError::ControlError)
 }
 
 #[command]
@@ -247,8 +245,11 @@ pub async fn get_running_processes(filter: FrontendProcessFilter) -> Result<Proc
         // Use optimized Windows native API for much better performance
         match get_running_processes_native(filter.clone()).await {
             Ok(response) => return Ok(response),
-            Err(e) => {
-                eprintln!("Failed to get processes with native API, falling back to sysinfo: {}", e);
+            Err(_e) => {
+                /*eprintln!(
+                    "Failed to get processes with native API, falling back to sysinfo: {}",
+                    e
+                );*/
                 // Fall through to sysinfo implementation
             }
         }
@@ -288,7 +289,10 @@ async fn get_running_processes_native(filter: FrontendProcessFilter) -> Result<P
                     if !regex.is_match(&process_name.to_lowercase()) {
                         continue;
                     }
-                } else if !process_name.to_lowercase().contains(&search_query.to_lowercase()) {
+                } else if !process_name
+                    .to_lowercase()
+                    .contains(&search_query.to_lowercase())
+                {
                     continue;
                 }
             }
@@ -380,7 +384,7 @@ async fn get_running_processes_fallback(filter: FrontendProcessFilter) -> Result
     system.refresh_all();
 
     // Small delay to ensure system has fresh data
-    std::thread::sleep(std::time::Duration::from_millis(10));
+    tokio::time::sleep(std::time::Duration::from_millis(10)).await;
     system.refresh_all();
 
     let processes = system.processes();
@@ -416,7 +420,10 @@ async fn get_running_processes_fallback(filter: FrontendProcessFilter) -> Result
                     if !regex.is_match(&process_name.to_lowercase()) {
                         continue;
                     }
-                } else if !process_name.to_lowercase().contains(&search_query.to_lowercase()) {
+                } else if !process_name
+                    .to_lowercase()
+                    .contains(&search_query.to_lowercase())
+                {
                     continue;
                 }
             }
@@ -439,7 +446,7 @@ async fn get_running_processes_fallback(filter: FrontendProcessFilter) -> Result
             }
         }
 
-        // Memory filter  
+        // Memory filter
         if let Some(min_memory) = filter.min_memory {
             if memory_usage < min_memory {
                 continue;
@@ -453,7 +460,8 @@ async fn get_running_processes_fallback(filter: FrontendProcessFilter) -> Result
             pid: pid_u32,
             name: process_name,
             cpu_usage: cpu_usage as f64,
-            exe_path: process.exe()
+            exe_path: process
+                .exe()
                 .map(|p| p.to_string_lossy().into_owned())
                 .unwrap_or_else(|| "N/A".to_string()),
             affinity_set: false, // TODO: Implement affinity checking
@@ -512,9 +520,17 @@ fn sort_processes(processes: &mut Vec<FrontendProcessData>, filter: &FrontendPro
             }
             "cpu" => {
                 if ascending {
-                    processes.sort_by(|a, b| a.cpu_usage.partial_cmp(&b.cpu_usage).unwrap_or(std::cmp::Ordering::Equal));
+                    processes.sort_by(|a, b| {
+                        a.cpu_usage
+                            .partial_cmp(&b.cpu_usage)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    });
                 } else {
-                    processes.sort_by(|a, b| b.cpu_usage.partial_cmp(&a.cpu_usage).unwrap_or(std::cmp::Ordering::Equal));
+                    processes.sort_by(|a, b| {
+                        b.cpu_usage
+                            .partial_cmp(&a.cpu_usage)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    });
                 }
             }
             "memory" => {
@@ -536,7 +552,10 @@ fn sort_processes(processes: &mut Vec<FrontendProcessData>, filter: &FrontendPro
     }
 }
 
-fn paginate_processes(processes: Vec<FrontendProcessData>, filter: &FrontendProcessFilter) -> Vec<FrontendProcessData> {
+fn paginate_processes(
+    processes: Vec<FrontendProcessData>,
+    filter: &FrontendProcessFilter,
+) -> Vec<FrontendProcessData> {
     let page = filter.page.unwrap_or(0); // 0-based page indexing to match frontend
     let page_size = filter.per_page.unwrap_or(50).min(1000); // Max 1000 items per page
 
@@ -567,9 +586,9 @@ pub struct ProcessDetailedInfo {
     pub exe_path: String,
     pub cpu_usage_percent: f64,
     pub memory_working_set: u64, // in MB
-    pub memory_private: u64, // in MB
-    pub memory_virtual: u64, // in MB
-    pub memory_pagefile: u64, // in MB
+    pub memory_private: u64,     // in MB
+    pub memory_virtual: u64,     // in MB
+    pub memory_pagefile: u64,    // in MB
     pub handle_count: u32,
     pub thread_count: u32,
     pub is_suspended: bool,
@@ -584,12 +603,12 @@ pub struct ProcessDetailedInfo {
 
 #[command]
 pub async fn get_detailed_process_info(pid: u32) -> Result<ProcessDetailedInfo> {
-    let process_info = process_control::get_process_detailed_info(pid)
-        .map_err(ProcessesError::ControlError)?;
+    let process_info =
+        process_control::get_process_detailed_info(pid).map_err(ProcessesError::ControlError)?;
 
     // Get child processes
-    let children = process_control::get_child_processes(pid)
-        .map_err(ProcessesError::ControlError)?;
+    let children =
+        process_control::get_child_processes(pid).map_err(ProcessesError::ControlError)?;
 
     let detailed_info = ProcessDetailedInfo {
         pid: process_info.pid,
@@ -598,9 +617,9 @@ pub async fn get_detailed_process_info(pid: u32) -> Result<ProcessDetailedInfo> 
         exe_path: process_info.exe_path,
         cpu_usage_percent: process_info.cpu_usage_percent,
         memory_working_set: process_info.memory_working_set / (1024 * 1024), // Convert to MB
-        memory_private: process_info.memory_private / (1024 * 1024), // Convert to MB
-        memory_virtual: process_info.memory_virtual / (1024 * 1024), // Convert to MB
-        memory_pagefile: process_info.memory_pagefile / (1024 * 1024), // Convert to MB
+        memory_private: process_info.memory_private / (1024 * 1024),         // Convert to MB
+        memory_virtual: process_info.memory_virtual / (1024 * 1024),         // Convert to MB
+        memory_pagefile: process_info.memory_pagefile / (1024 * 1024),       // Convert to MB
         handle_count: process_info.handle_count,
         thread_count: process_info.thread_count,
         is_suspended: process_info.is_suspended,
@@ -621,13 +640,16 @@ pub async fn get_detailed_process_info(pid: u32) -> Result<ProcessDetailedInfo> 
         } else {
             "Unknown".to_string()
         },
-        children: children.into_iter().map(|child| ProcessBasicInfo {
-            pid: child.pid,
-            name: child.name,
-            cpu_usage_percent: child.cpu_usage_percent,
-            memory_working_set: child.memory_working_set / (1024 * 1024), // Convert to MB
-            is_suspended: child.is_suspended,
-        }).collect(),
+        children: children
+            .into_iter()
+            .map(|child| ProcessBasicInfo {
+                pid: child.pid,
+                name: child.name,
+                cpu_usage_percent: child.cpu_usage_percent,
+                memory_working_set: child.memory_working_set / (1024 * 1024), // Convert to MB
+                is_suspended: child.is_suspended,
+            })
+            .collect(),
     };
 
     Ok(detailed_info)

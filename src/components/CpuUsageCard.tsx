@@ -40,18 +40,16 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
   genericData,
 }) => {
   const [expanded, setExpanded] = useState(false);
-
   // Determina il brand della CPU
   const getCpuBrand = (cpuName: string) => {
-    if (cpuName.toLowerCase().includes('amd')) return 'AMD';
-    if (cpuName.toLowerCase().includes('intel')) return 'Intel';
-    return 'CPU';
+    if (cpuName.toLowerCase().includes("amd")) return "AMD";
+    if (cpuName.toLowerCase().includes("intel")) return "Intel";
+    return "CPU";
   };
-
-  const cpuName = genericData?.cpu_name || "AMD Ryzen 7 7800X3D 8-Core Processor";
+  const cpuName =
+    genericData?.cpu_name || "AMD Ryzen 7 7800X3D 8-Core Processor";
   const cpuBrand = getCpuBrand(cpuName);
   const overallUsage = percentage || 0;
-  
   // Dati simulati per temperatura e frequenze (da implementare nel backend)
   const temperature = 50.8;
   const baseClock = 4.2;
@@ -64,13 +62,13 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
       title="CPU"
       headerActions={
         <Box display="flex" gap={1} alignItems="center">
-          <Chip 
-            label={cpuBrand} 
+          <Chip
+            label={cpuBrand}
             size="small"
-            color={cpuBrand === 'AMD' ? "error" : "info"}
+            color={cpuBrand === "AMD" ? "error" : "info"}
           />
-          <Chip 
-            label={`${Math.round(overallUsage)}%`} 
+          <Chip
+            label={`${Math.round(overallUsage)}%`}
             size="small"
             color="success"
           />
@@ -94,7 +92,6 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
       >
         {cpuName}
       </Typography>
-
       {/* Overall Usage */}
       <Box mb={2}>
         <Box
@@ -106,9 +103,7 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
           <Typography variant="body2" fontWeight="medium">
             Overall Usage
           </Typography>
-          <Typography variant="body2">
-            {Math.round(overallUsage)}%
-          </Typography>
+          <Typography variant="body2">{Math.round(overallUsage)}%</Typography>
         </Box>
         <LinearProgress
           variant="determinate"
@@ -117,8 +112,7 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
           color={overallUsage > 80 ? "warning" : "primary"}
         />
       </Box>
-
-      <Divider sx={{ my: 2 }} />      {/* Metrics Grid */}
+      <Divider sx={{ my: 2 }} /> {/* Metrics Grid */}
       <Grid container spacing={1} mb={2}>
         <Grid size={6}>
           <MetricBox>
@@ -153,7 +147,9 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
         <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
-              <SpeedIcon sx={{ fontSize: 16, mr: 0.5, color: "warning.main" }} />
+              <SpeedIcon
+                sx={{ fontSize: 16, mr: 0.5, color: "warning.main" }}
+              />
               <Typography variant="caption" color="text.secondary">
                 Max Clock
               </Typography>
@@ -179,7 +175,8 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
             </Typography>
           </MetricBox>
         </Grid>
-      </Grid>      <Divider sx={{ my: 2 }} />      {/* Core Usage - solo se espanso */}
+      </Grid>{" "}
+      <Divider sx={{ my: 2 }} /> {/* Core Usage - solo se espanso */}
       {expanded && (
         <>
           <Typography variant="body2" fontWeight="medium" mb={1}>
@@ -210,7 +207,11 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
                       sx={{ height: 4, borderRadius: 2, mb: 0.5 }}
                       color="primary"
                     />
-                    <Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem' }}>
+                    <Typography
+                      variant="caption"
+                      color="success.main"
+                      sx={{ fontSize: "0.7rem" }}
+                    >
                       🌡️ {coreTemp.toFixed(1)}°C
                     </Typography>
                   </Box>
@@ -223,5 +224,4 @@ const CpuUsageCard: React.FC<CpuUsageCardProps> = ({
     </BaseCard>
   );
 };
-
 export default CpuUsageCard;

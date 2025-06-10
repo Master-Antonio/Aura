@@ -46,7 +46,7 @@ impl GpuService {
             average_utilization,
         })
     }
-    #[cfg(feature = "nvml-wrapper")]
+
     fn get_nvidia_gpus(&self) -> Result<Vec<GpuInfo>> {
         use nvml_wrapper::Nvml;
 
@@ -59,10 +59,16 @@ impl GpuService {
             let name = device.name()?;
             let memory_info = device.memory_info()?;
             let utilization = device.utilization_rates()?.gpu;
-            let temperature = device.temperature(nvml_wrapper::enum_wrappers::device::TemperatureSensor::Gpu).ok();
+            let temperature = device
+                .temperature(nvml_wrapper::enum_wrappers::device::TemperatureSensor::Gpu)
+                .ok();
             let power_usage = device.power_usage().ok().map(|p| p as f32 / 1000.0);
-            let clock_speed = device.clock_info(nvml_wrapper::enum_wrappers::device::Clock::Graphics).ok();
-            let memory_clock = device.clock_info(nvml_wrapper::enum_wrappers::device::Clock::Memory).ok();
+            let clock_speed = device
+                .clock_info(nvml_wrapper::enum_wrappers::device::Clock::Graphics)
+                .ok();
+            let memory_clock = device
+                .clock_info(nvml_wrapper::enum_wrappers::device::Clock::Memory)
+                .ok();
             let driver_version = nvml.sys_driver_version().ok();
 
             gpus.push(GpuInfo {
@@ -71,7 +77,8 @@ impl GpuService {
                 utilization: utilization as f32,
                 memory_used: memory_info.used,
                 memory_total: memory_info.total,
-                memory_usage_percentage: (memory_info.used as f32 / memory_info.total as f32) * 100.0,
+                memory_usage_percentage: (memory_info.used as f32 / memory_info.total as f32)
+                    * 100.0,
                 temperature: temperature.map(|t| t as f32),
                 power_usage,
                 clock_speed,
@@ -83,10 +90,6 @@ impl GpuService {
         }
 
         Ok(gpus)
-    }
-    #[cfg(not(feature = "nvml-wrapper"))]
-    fn get_nvidia_gpus(&self) -> Result<Vec<GpuInfo>> {
-        Ok(Vec::new())
     }
 
     fn get_amd_gpus(&self) -> Result<Vec<GpuInfo>> {
@@ -135,7 +138,8 @@ impl GpuService {
                             let vendor_id = vendor.trim();
                             let device_id = device.trim();
 
-                            if vendor_id == "0x1002" { // AMD vendor ID
+                            if vendor_id == "0x1002" {
+                                // AMD vendor ID
                                 gpus.push(GpuInfo {
                                     name: format!("AMD GPU ({})", device_id),
                                     vendor: "AMD".to_string(),
@@ -152,7 +156,8 @@ impl GpuService {
         Ok(gpus)
     }
 
-    fn get_generic_gpus(&self) -> Result<Vec<GpuInfo>> {        // Use wgpu for cross-platform GPU detection
+    fn get_generic_gpus(&self) -> Result<Vec<GpuInfo>> {
+        // Use wgpu for cross-platform GPU detection
         use wgpu::{Backends, Instance, InstanceDescriptor};
 
         let _instance = Instance::new(&InstanceDescriptor {

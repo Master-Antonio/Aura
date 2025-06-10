@@ -6,8 +6,8 @@ import {
   Grid,
   IconButton,
   LinearProgress,
-  Typography,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SvgIconComponent } from "@mui/icons-material";
@@ -42,53 +42,63 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
   const [selectedInterface, setSelectedInterface] = useState(0);
   // Extract network interfaces from progressData (individual interfaces from backend)
   const allInterfaces = progressData || [];
-
   // If no interfaces found, create a default interface
-  const networkInterfaces = allInterfaces.length > 0 ? allInterfaces : [{
-    title: "Ethernet",
-    value: 15, // Default activity level
-    temperature: undefined
-  }];
-
-  const currentInterface = networkInterfaces[selectedInterface] || networkInterfaces[0];    // Extract real-time data from genericData and convert to KB/s
-  const downloadSpeed = genericData?.find((item: any) => item.title === "Download Speed")?.value || "0 B/s";
-  const uploadSpeed = genericData?.find((item: any) => item.title === "Upload Speed")?.value || "0 B/s";
-  
+  const networkInterfaces =
+    allInterfaces.length > 0
+      ? allInterfaces
+      : [
+          {
+            title: "Ethernet",
+            value: 15, // Default activity level
+            temperature: undefined,
+          },
+        ];
+  const currentInterface =
+    networkInterfaces[selectedInterface] || networkInterfaces[0]; // Extract real-time data from genericData and convert to KB/s
+  const downloadSpeed =
+    genericData?.find((item: any) => item.title === "Download Speed")?.value ||
+    "0 B/s";
+  const uploadSpeed =
+    genericData?.find((item: any) => item.title === "Upload Speed")?.value ||
+    "0 B/s";
   // Helper function to convert bytes to KB/s for display
   const formatSpeedInKB = (speedStr: string) => {
     const match = speedStr.match(/([\d.]+)\s*([KMGT]?B)/);
     if (!match) return "0 KB/s";
-    
     const value = parseFloat(match[1]);
     const unit = match[2];
-    
-    let kbValue = value;
+    let kbValue: number;
     switch (unit) {
-      case 'GB': kbValue = value * 1024 * 1024; break;
-      case 'MB': kbValue = value * 1024; break;
-      case 'KB': kbValue = value; break;
-      case 'B': kbValue = value / 1024; break;
-      default: kbValue = value / 1024; break;
+      case "GB":
+        kbValue = value * 1024 * 1024;
+        break;
+      case "MB":
+        kbValue = value * 1024;
+        break;
+      case "KB":
+        kbValue = value;
+        break;
+      case "B":
+        kbValue = value / 1024;
+        break;
+      default:
+        kbValue = value / 1024;
+        break;
     }
-    
     return `${kbValue.toFixed(1)} KB/s`;
   };
-  
   // Calculate network usage based on current interface
   const calculateNetworkUsage = () => {
     // Use interface-specific value if available, otherwise calculate from speeds
     if (currentInterface?.value !== undefined) {
       return currentInterface.value;
     }
-    
-    const downMbps = parseFloat(downloadSpeed.replace(/[^\d.]/g, '')) || 0;
-    const upMbps = parseFloat(uploadSpeed.replace(/[^\d.]/g, '')) || 0;
+    const downMbps = parseFloat(downloadSpeed.replace(/[^\d.]/g, "")) || 0;
+    const upMbps = parseFloat(uploadSpeed.replace(/[^\d.]/g, "")) || 0;
     const maxSpeed = 1000; // Assume Gigabit connection
     const totalSpeed = downMbps + upMbps;
-    
     return Math.min((totalSpeed / maxSpeed) * 100, 100);
   };
-
   const overallUsage = calculateNetworkUsage();
   // Determine network interface specifications
   const getInterfaceSpecs = (interfaceTitle: string) => {
@@ -96,9 +106,10 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
     let interfaceType = "Ethernet";
     let connectionSpeed = "1 Gbps";
     let status = "Disconnected";
-    
     // Parse interface title format: "InterfaceName (Type) - Speed Mbps [Status]"
-    const interfaceMatch = interfaceTitle.match(/^(.+?)\s*\(([^)]+)\)(?:\s*-\s*(\d+)\s*Mbps)?(?:\s*\[([^\]]+)\])?/);
+    const interfaceMatch = interfaceTitle.match(
+      /^(.+?)\s*\(([^)]+)\)(?:\s*-\s*(\d+)\s*Mbps)?(?:\s*\[([^\]]+)\])?/,
+    );
     if (interfaceMatch) {
       interfaceName = interfaceMatch[1].trim();
       interfaceType = interfaceMatch[2].trim();
@@ -110,7 +121,10 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
       }
     } else {
       // Fallback: determine type from name
-      if (interfaceTitle.toLowerCase().includes("wi-fi") || interfaceTitle.toLowerCase().includes("wireless")) {
+      if (
+        interfaceTitle.toLowerCase().includes("wi-fi") ||
+        interfaceTitle.toLowerCase().includes("wireless")
+      ) {
         interfaceType = "Wi-Fi";
         connectionSpeed = "300 Mbps";
         status = "Connected";
@@ -120,23 +134,18 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
         status = "Paired";
       }
     }
-    
     return { interfaceName, interfaceType, connectionSpeed, status };
   };
-
-  const { interfaceName, interfaceType, connectionSpeed, status } = getInterfaceSpecs(currentInterface?.title || "");
+  const { interfaceName, interfaceType, connectionSpeed, status } =
+    getInterfaceSpecs(currentInterface?.title || "");
   return (
     <BaseCard
       icon={icon}
       title="Network"
-      headerActions={
-        <Chip 
-          label={interfaceType}
-          size="small"
-          color="info"
-        />
-      }
-    >      {/* Interface Name */}
+      headerActions={<Chip label={interfaceType} size="small" color="info" />}
+    >
+      {" "}
+      {/* Interface Name */}
       <Typography
         variant="body2"
         color="text.secondary"
@@ -146,7 +155,6 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
       >
         {interfaceName || "Primary Interface"}
       </Typography>
-      
       {/* Connection Speed */}
       <Typography
         variant="caption"
@@ -156,7 +164,6 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
       >
         {connectionSpeed} • {status}
       </Typography>
-
       {/* Network Activity */}
       <Box mb={2}>
         <Box
@@ -168,9 +175,7 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
           <Typography variant="body2" fontWeight="medium">
             Network Activity
           </Typography>
-          <Typography variant="body2">
-            {Math.round(overallUsage)}%
-          </Typography>
+          <Typography variant="body2">{Math.round(overallUsage)}%</Typography>
         </Box>
         <LinearProgress
           variant="determinate"
@@ -179,16 +184,13 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
           color={overallUsage > 70 ? "warning" : "info"}
         />
       </Box>
-
       {/* Network Speed Info */}
       <Box mb={2}>
         <Typography variant="caption" color="text.secondary">
           Download: {downloadSpeed} • Upload: {uploadSpeed}
         </Typography>
       </Box>
-
       <Divider sx={{ my: 2 }} />
-
       {/* Metrics Grid */}
       <Grid container spacing={1}>
         <Grid size={6}>
@@ -206,11 +208,12 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
             </Typography>
           </MetricBox>
         </Grid>
-
         <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
-              <NetworkCheckIcon sx={{ fontSize: 16, mr: 0.5, color: "info.main" }} />
+              <NetworkCheckIcon
+                sx={{ fontSize: 16, mr: 0.5, color: "info.main" }}
+              />
               <Typography variant="caption" color="text.secondary">
                 Status
               </Typography>
@@ -219,10 +222,13 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
               {status}
             </Typography>
           </MetricBox>
-        </Grid>        <Grid size={6}>
+        </Grid>{" "}
+        <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
-              <DownloadIcon sx={{ fontSize: 16, mr: 0.5, color: "success.main" }} />
+              <DownloadIcon
+                sx={{ fontSize: 16, mr: 0.5, color: "success.main" }}
+              />
               <Typography variant="caption" color="text.secondary">
                 Received
               </Typography>
@@ -232,7 +238,6 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
             </Typography>
           </MetricBox>
         </Grid>
-
         <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
@@ -249,7 +254,6 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
           </MetricBox>
         </Grid>
       </Grid>
-
       {/* Navigation for multiple interfaces */}
       {networkInterfaces.length > 1 && (
         <>
@@ -258,7 +262,9 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
             <Tooltip title="Previous Interface">
               <IconButton
                 size="small"
-                onClick={() => setSelectedInterface((prev) => Math.max(prev - 1, 0))}
+                onClick={() =>
+                  setSelectedInterface((prev) => Math.max(prev - 1, 0))
+                }
                 disabled={selectedInterface === 0}
               >
                 <ChevronLeftIcon fontSize="small" />
@@ -286,5 +292,4 @@ const NetworkCard: React.FC<NetworkCardProps> = ({
     </BaseCard>
   );
 };
-
 export default NetworkCard;

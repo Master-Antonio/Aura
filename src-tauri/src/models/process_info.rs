@@ -62,8 +62,7 @@ impl ProcessInfo {
     }
 
     pub fn is_system_process(&self) -> bool {
-        self.user.to_lowercase().contains("system") ||
-            self.user.to_lowercase().contains("root")
+        self.user.to_lowercase().contains("system") || self.user.to_lowercase().contains("root")
     }
 }
 

@@ -7,18 +7,23 @@ pub mod commands;
 pub mod models;
 pub mod services;
 pub mod shared;
-pub mod utils;
 pub mod ui;
+pub mod utils;
 
 // Re-export delle funzioni più utilizzate per semplificare l'accesso
 pub use commands::{
-    cpu::get_cpu_stats, gpu::get_gpu_stats,
+    cpu::get_cpu_stats,
+    gpu::get_gpu_stats,
     memory::get_memory_stats,
     network::get_network_stats,
-    optimization_commands::{apply_optimization, get_available_optimizations, get_current_platform, revert_optimization},
+    optimization_commands::{
+        apply_optimization, get_available_optimizations, get_current_platform, revert_optimization,
+    },
     optimizations::{disable_game_dvr, optimize_time_resolution},
     process::open_file_location,
-    processes::{get_processes, get_running_processes, kill_process, resume_process, suspend_process},
+    processes::{
+        get_processes, get_running_processes, kill_process, resume_process, suspend_process,
+    },
     storage::get_storage_stats,
     system::get_system_stats,
 };
@@ -29,7 +34,9 @@ pub use models::{
 };
 
 pub use services::{
-    process_control::{kill_process as kill_process_service, suspend_process as suspend_process_service},
+    process_control::{
+        kill_process as kill_process_service, suspend_process as suspend_process_service,
+    },
     process_info::{name, parent_pid, session_id, status, user},
 };
 

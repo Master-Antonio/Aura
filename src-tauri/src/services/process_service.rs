@@ -5,7 +5,9 @@ use std::sync::Arc;
 use sysinfo::Pid;
 
 pub fn name(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     Ok(system
@@ -17,7 +19,9 @@ pub fn name(pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn parent_pid(pid: Arc<Pid>) -> Result<Option<i32>> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     Ok(system
@@ -27,7 +31,9 @@ pub fn parent_pid(pid: Arc<Pid>) -> Result<Option<i32>> {
 }
 
 pub fn session_id(pid: Arc<Pid>) -> Result<u32> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     match system.process(*pid) {
@@ -40,7 +46,9 @@ pub fn session_id(pid: Arc<Pid>) -> Result<u32> {
 }
 
 pub fn user(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     Ok(system
@@ -52,7 +60,9 @@ pub fn user(pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn status(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     Ok(system
@@ -63,7 +73,9 @@ pub fn status(pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn cpu(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
     std::thread::sleep(REFRESH_INTERVAL);
     system.refresh_all();
@@ -77,7 +89,9 @@ pub fn cpu(pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn memory(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     let memory = system
@@ -95,7 +109,9 @@ pub fn gpu(_pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn disk_io(pid: Arc<Pid>) -> Result<String> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     let process = system
@@ -113,7 +129,9 @@ pub fn disk_io(pid: Arc<Pid>) -> Result<String> {
 }
 
 pub fn env_vars(pid: Arc<Pid>) -> Result<Vec<String>> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     let env_vars = system
@@ -128,7 +146,9 @@ pub fn env_vars(pid: Arc<Pid>) -> Result<Vec<String>> {
 }
 
 pub fn children_processes(pid: Arc<Pid>) -> Result<Vec<i32>> {
-    let mut system = get_system().lock().map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
+    let mut system = get_system()
+        .lock()
+        .map_err(|e| anyhow::anyhow!("Lock error: {}", e))?;
     system.refresh_all();
 
     Ok(system

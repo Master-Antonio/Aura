@@ -6,8 +6,8 @@ import {
   Grid,
   IconButton,
   LinearProgress,
-  Typography,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { SvgIconComponent } from "@mui/icons-material";
@@ -41,44 +41,44 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
   genericData,
 }) => {
   const [selectedModule, setSelectedModule] = useState(0);
-
   // Extract memory modules from genericData
-  const memoryModules = genericData?.filter((data: any) => 
-    data.title.includes("Slot") || data.title.includes("Module") || data.title.includes("DIMM")
-  ) || [];
-
+  const memoryModules =
+    genericData?.filter(
+      (data: any) =>
+        data.title.includes("Slot") ||
+        data.title.includes("Module") ||
+        data.title.includes("DIMM"),
+    ) || [];
   // If no modules found, create a default overall memory entry
   if (memoryModules.length === 0) {
-    const totalMemory = genericData?.find((data: any) => data.title === "Total Memory")?.value || "0 GB";
-    const usedMemory = genericData?.find((data: any) => data.title === "Used Memory")?.value || "0 GB";
+    const totalMemory =
+      genericData?.find((data: any) => data.title === "Total Memory")?.value ||
+      "0 GB";
+    const usedMemory =
+      genericData?.find((data: any) => data.title === "Used Memory")?.value ||
+      "0 GB";
     memoryModules.push({
       title: "System Memory",
       value: `${usedMemory} / ${totalMemory}`,
       manufacturer: "System",
       speed: "N/A",
-      type: "DDR4"
+      type: "DDR4",
     });
   }
-
   const currentModule = memoryModules[selectedModule] || memoryModules[0];
   const overallUsage = percentage || 0;
-  
   // Extract memory specifications
   const getMemorySpecs = (moduleValue: string) => {
     // Parse memory module info (e.g., "16 GB @ 3200 MHz - Kingston HyperX")
-    const parts = moduleValue.split(' - ');
+    const parts = moduleValue.split(" - ");
     const capacityPart = parts[0] || moduleValue;
     const brandPart = parts[1] || "Unknown";
-    
     const capacity = capacityPart.match(/\d+\s*GB/)?.[0] || "N/A";
     const speed = capacityPart.match(/\d+\s*MHz/)?.[0] || "N/A";
-    
     return { capacity, speed, brand: brandPart };
   };
-
   const { capacity, speed, brand } = getMemorySpecs(currentModule?.value || "");
   const memoryTemp = 45.2; // Simulated temperature
-
   // Determine memory type
   const getMemoryType = () => {
     if (currentModule?.value?.includes("DDR5")) return "DDR5";
@@ -86,20 +86,12 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
     if (currentModule?.value?.includes("DDR3")) return "DDR3";
     return "DDR4"; // Default
   };
-
   const memoryType = getMemoryType();
-
   return (
     <BaseCard
       icon={icon}
       title="Memory"
-      headerActions={
-        <Chip 
-          label={memoryType}
-          size="small"
-          color="primary"
-        />
-      }
+      headerActions={<Chip label={memoryType} size="small" color="primary" />}
     >
       {/* Memory Module Name */}
       <Typography
@@ -123,9 +115,7 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
           <Typography variant="body2" fontWeight="medium">
             Memory Usage
           </Typography>
-          <Typography variant="body2">
-            {Math.round(overallUsage)}%
-          </Typography>
+          <Typography variant="body2">{Math.round(overallUsage)}%</Typography>
         </Box>
         <LinearProgress
           variant="determinate"
@@ -142,9 +132,7 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
         <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
-              <StorageIcon
-                sx={{ fontSize: 16, mr: 0.5, color: "info.main" }}
-              />
+              <StorageIcon sx={{ fontSize: 16, mr: 0.5, color: "info.main" }} />
               <Typography variant="caption" color="text.secondary">
                 Capacity
               </Typography>
@@ -158,7 +146,9 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
         <Grid size={6}>
           <MetricBox>
             <Box display="flex" alignItems="center" mb={0.5}>
-              <SpeedIcon sx={{ fontSize: 16, mr: 0.5, color: "success.main" }} />
+              <SpeedIcon
+                sx={{ fontSize: 16, mr: 0.5, color: "success.main" }}
+              />
               <Typography variant="caption" color="text.secondary">
                 Speed
               </Typography>
@@ -210,7 +200,9 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
             <Tooltip title="Previous Module">
               <IconButton
                 size="small"
-                onClick={() => setSelectedModule((prev) => Math.max(prev - 1, 0))}
+                onClick={() =>
+                  setSelectedModule((prev) => Math.max(prev - 1, 0))
+                }
                 disabled={selectedModule === 0}
               >
                 <ChevronLeftIcon fontSize="small" />
@@ -238,5 +230,4 @@ const MemoryCard: React.FC<MemoryCardProps> = ({
     </BaseCard>
   );
 };
-
 export default MemoryCard;

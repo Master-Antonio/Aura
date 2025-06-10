@@ -50,7 +50,11 @@ pub fn get_gpu_stats() -> StdResult<GpuStats, String> {
         gpu_count = 1;
     }
 
-    let average_utilization = if gpu_count > 0 { total_utilization / gpu_count as f32 } else { 0.0 };
+    let average_utilization = if gpu_count > 0 {
+        total_utilization / gpu_count as f32
+    } else {
+        0.0
+    };
 
     Ok(GpuStats {
         gpus,
@@ -63,8 +67,8 @@ pub fn get_gpu_stats() -> StdResult<GpuStats, String> {
 fn get_dxgi_gpu_info() -> StdResult<Vec<GpuInfo>, String> {
     unsafe {
         // Create DXGI Factory
-        let factory: IDXGIFactory1 = CreateDXGIFactory1()
-            .map_err(|e| format!("Failed to create DXGI factory: {:?}", e))?;
+        let factory: IDXGIFactory1 =
+            CreateDXGIFactory1().map_err(|e| format!("Failed to create DXGI factory: {:?}", e))?;
 
         let mut gpus = Vec::new();
         let mut adapter_index = 0;
@@ -80,7 +84,7 @@ fn get_dxgi_gpu_info() -> StdResult<Vec<GpuInfo>, String> {
                             adapter_index += 1;
                             continue;
                         }
-                    };                    // Convert GPU name from UTF-16
+                    }; // Convert GPU name from UTF-16
                     let name = String::from_utf16_lossy(&desc.Description)
                         .trim_end_matches('\0')
                         .to_string();
@@ -89,15 +93,19 @@ fn get_dxgi_gpu_info() -> StdResult<Vec<GpuInfo>, String> {
 
                     // Only skip pure software/virtual adapters that are clearly not hardware
                     // Be very conservative - only exclude obvious software-only adapters
-                    if name_lower.contains("microsoft basic render driver") ||
-                        name_lower.contains("microsoft basic display adapter") ||
-                        name_lower.contains("remote desktop") ||
-                        name_lower.contains("teamviewer") ||
-                        name_lower.contains("vnc") ||
-                        name_lower.contains("parsec") ||
-                        name_lower.contains("citrix") ||
-                        (name_lower.contains("virtual") && !name_lower.contains("amd") && !name_lower.contains("nvidia") && !name_lower.contains("intel")) ||
-                        name_lower == "software" {
+                    if name_lower.contains("microsoft basic render driver")
+                        || name_lower.contains("microsoft basic display adapter")
+                        || name_lower.contains("remote desktop")
+                        || name_lower.contains("teamviewer")
+                        || name_lower.contains("vnc")
+                        || name_lower.contains("parsec")
+                        || name_lower.contains("citrix")
+                        || (name_lower.contains("virtual")
+                        && !name_lower.contains("amd")
+                        && !name_lower.contains("nvidia")
+                        && !name_lower.contains("intel"))
+                        || name_lower == "software"
+                    {
                         adapter_index += 1;
                         continue;
                     }
@@ -126,27 +134,32 @@ fn get_dxgi_gpu_info() -> StdResult<Vec<GpuInfo>, String> {
 
                     // Simulate reasonable memory usage (5-30% for better realism)
                     let mut rng = rand::rng();
-                    let memory_used = (memory_total as f32 * (0.05 + rng.random::<f32>() * 0.25)) as u64;
+                    let memory_used =
+                        (memory_total as f32 * (0.05 + rng.random::<f32>() * 0.25)) as u64;
 
                     // Include ALL GPU hardware - discrete and integrated
                     // Only exclude if it's clearly a software-only adapter
-                    let is_known_vendor = vendor == "AMD" || vendor == "Intel" || vendor == "NVIDIA";
-                    let has_graphics_in_name = name_lower.contains("graphics") ||
-                        name_lower.contains("display") ||
-                        name_lower.contains("video") ||
-                        name_lower.contains("gpu");
-                    let has_gpu_keywords = name_lower.contains("radeon") ||
-                        name_lower.contains("geforce") ||
-                        name_lower.contains("quadro") ||
-                        name_lower.contains("iris") ||
-                        name_lower.contains("uhd") ||
-                        name_lower.contains("vega") ||
-                        name_lower.contains("navi") ||
-                        name_lower.contains("rtx") ||
-                        name_lower.contains("gtx");
+                    let is_known_vendor =
+                        vendor == "AMD" || vendor == "Intel" || vendor == "NVIDIA";
+                    let has_graphics_in_name = name_lower.contains("graphics")
+                        || name_lower.contains("display")
+                        || name_lower.contains("video")
+                        || name_lower.contains("gpu");
+                    let has_gpu_keywords = name_lower.contains("radeon")
+                        || name_lower.contains("geforce")
+                        || name_lower.contains("quadro")
+                        || name_lower.contains("iris")
+                        || name_lower.contains("uhd")
+                        || name_lower.contains("vega")
+                        || name_lower.contains("navi")
+                        || name_lower.contains("rtx")
+                        || name_lower.contains("gtx");
 
                     // Include if it's from a known vendor OR has graphics-related keywords OR has reasonable memory
-                    let should_include = is_known_vendor || has_graphics_in_name || has_gpu_keywords || memory_total >= 128 * 1024 * 1024;
+                    let should_include = is_known_vendor
+                        || has_graphics_in_name
+                        || has_gpu_keywords
+                        || memory_total >= 128 * 1024 * 1024;
 
                     if should_include {
                         let utilization = rng.random::<f32>() * 15.0; // 0-15% for idle
@@ -190,16 +203,27 @@ fn get_dxgi_gpu_info() -> StdResult<Vec<GpuInfo>, String> {
 fn determine_vendor(gpu_name: &str) -> &'static str {
     let name_lower = gpu_name.to_lowercase();
 
-    if name_lower.contains("nvidia") || name_lower.contains("geforce") ||
-        name_lower.contains("rtx") || name_lower.contains("gtx") ||
-        name_lower.contains("quadro") || name_lower.contains("tesla") {
+    if name_lower.contains("nvidia")
+        || name_lower.contains("geforce")
+        || name_lower.contains("rtx")
+        || name_lower.contains("gtx")
+        || name_lower.contains("quadro")
+        || name_lower.contains("tesla")
+    {
         "NVIDIA"
-    } else if name_lower.contains("amd") || name_lower.contains("radeon") ||
-        name_lower.contains("rx ") || name_lower.contains("vega") ||
-        name_lower.contains("navi") || name_lower.contains("rdna") {
+    } else if name_lower.contains("amd")
+        || name_lower.contains("radeon")
+        || name_lower.contains("rx ")
+        || name_lower.contains("vega")
+        || name_lower.contains("navi")
+        || name_lower.contains("rdna")
+    {
         "AMD"
-    } else if name_lower.contains("intel") || name_lower.contains("iris") ||
-        name_lower.contains("uhd") || name_lower.contains("hd graphics") {
+    } else if name_lower.contains("intel")
+        || name_lower.contains("iris")
+        || name_lower.contains("uhd")
+        || name_lower.contains("hd graphics")
+    {
         "Intel"
     } else {
         "Unknown"
@@ -209,7 +233,14 @@ fn determine_vendor(gpu_name: &str) -> &'static str {
 // Fallback function for NVIDIA GPUs using nvidia-smi
 fn get_nvidia_gpus() -> StdResult<Vec<GpuInfo>, String> {
     let output = std::process::Command::new("cmd")
-        .args(&["/C", "timeout", "5", "nvidia-smi", "--query-gpu=name,memory.total,memory.used,temperature.gpu,utilization.gpu", "--format=csv,noheader,nounits"])
+        .args(&[
+            "/C",
+            "timeout",
+            "5",
+            "nvidia-smi",
+            "--query-gpu=name,memory.total,memory.used,temperature.gpu,utilization.gpu",
+            "--format=csv,noheader,nounits",
+        ])
         .output()
         .map_err(|e| format!("Failed to execute nvidia-smi: {}", e))?;
 
@@ -239,7 +270,7 @@ fn get_nvidia_gpus() -> StdResult<Vec<GpuInfo>, String> {
                     },
                     temperature: Some(temperature),
                     power_usage: Some(50.0 + rng.random::<f32>() * 200.0), // 50-250W
-                    clock_speed: Some(1400 + rng.random::<u32>() % 1100), // 1400-2500 MHz
+                    clock_speed: Some(1400 + rng.random::<u32>() % 1100),  // 1400-2500 MHz
                     memory_clock: Some(7000 + rng.random::<u32>() % 7000), // 7000-14000 MHz
                     driver_version: Some("Unknown".to_string()),
                     is_nvidia: true,

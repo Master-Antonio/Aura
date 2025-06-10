@@ -1,6 +1,10 @@
 use crate::models::system_stats::{GenericData, ProgressData, SystemStats};
+use std::{
+    process::Command,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 use sysinfo::Networks;
-use std::{sync::{Arc, Mutex}, time::{Duration, Instant}, process::Command};
 use tauri::command;
 
 const NETWORK_SAMPLE_INTERVAL: Duration = Duration::from_millis(1000);
@@ -38,17 +42,24 @@ struct NetworkAdapterInfo {
 #[cfg(target_os = "windows")]
 fn get_network_adapters() -> Vec<NetworkAdapterInfo> {
     let mut adapters = Vec::new();
-    
+
     // Get ALL network adapter info using wmic (not just connected ones)
     let output = Command::new("wmic")
-        .args(&["path", "win32_networkadapter", "get", "Name,Speed,AdapterType,NetConnectionStatus,MACAddress", "/format:csv"])
+        .args(&[
+            "path",
+            "win32_networkadapter",
+            "get",
+            "Name,Speed,AdapterType,NetConnectionStatus,MACAddress",
+            "/format:csv",
+        ])
         .output();
-    
+
     if let Ok(output) = output {
         let output_str = String::from_utf8_lossy(&output.stdout);
         let lines: Vec<&str> = output_str.lines().collect();
-        
-        for line in lines.iter().skip(1) { // Skip header
+
+        for line in lines.iter().skip(1) {
+            // Skip header
             if !line.trim().is_empty() && line.contains(',') {
                 let parts: Vec<&str> = line.split(',').collect();
                 if parts.len() >= 6 {
@@ -57,40 +68,47 @@ fn get_network_adapters() -> Vec<NetworkAdapterInfo> {
                     let name = parts[3].trim();
                     let status_code = parts[4].trim();
                     let speed = parts[5].trim();
-                    
+
                     // Skip virtual adapters and loopback
-                    if name.is_empty() || 
-                       name.to_lowercase().contains("loopback") ||
-                       name.to_lowercase().contains("isatap") ||
-                       name.to_lowercase().contains("teredo") ||
-                       name.to_lowercase().contains("virtual") ||
-                       mac_address.is_empty() || mac_address == "NULL" {
+                    if name.is_empty()
+                        || name.to_lowercase().contains("loopback")
+                        || name.to_lowercase().contains("isatap")
+                        || name.to_lowercase().contains("teredo")
+                        || name.to_lowercase().contains("virtual")
+                        || mac_address.is_empty()
+                        || mac_address == "NULL"
+                    {
                         continue;
                     }
-                    
+
                     let status = match status_code {
                         "2" => "Connected",
-                        "7" => "Disconnected", 
+                        "7" => "Disconnected",
                         "0" => "Disabled",
-                        _ => "Unknown"
+                        _ => "Unknown",
                     };
-                    
+
                     let speed_mbps = if !speed.is_empty() && speed != "NULL" {
                         speed.parse::<u64>().ok().map(|s| s / 1_000_000) // Convert from bps to Mbps
                     } else {
                         None
                     };
-                    
-                    let interface_type = if adapter_type.contains("Ethernet") || name.to_lowercase().contains("ethernet") {
+
+                    let interface_type = if adapter_type.contains("Ethernet")
+                        || name.to_lowercase().contains("ethernet")
+                    {
                         "Ethernet".to_string()
-                    } else if adapter_type.contains("Wireless") || name.to_lowercase().contains("wi-fi") || name.to_lowercase().contains("wireless") {
+                    } else if adapter_type.contains("Wireless")
+                        || name.to_lowercase().contains("wi-fi")
+                        || name.to_lowercase().contains("wireless")
+                    {
                         "Wi-Fi".to_string()
                     } else if name.to_lowercase().contains("bluetooth") {
                         "Bluetooth".to_string()
                     } else {
                         "Other".to_string()
                     };
-                    
+
                     adapters.push(NetworkAdapterInfo {
                         name: name.to_string(),
                         speed: speed_mbps,
@@ -101,7 +119,7 @@ fn get_network_adapters() -> Vec<NetworkAdapterInfo> {
             }
         }
     }
-    
+
     adapters
 }
 
@@ -144,12 +162,12 @@ struct NetworkTotals {
 fn get_network_totals(networks: &Networks) -> NetworkTotals {
     let mut total_received = 0;
     let mut total_transmitted = 0;
-    
+
     for (_, data) in networks.iter() {
         total_received += data.received();
         total_transmitted += data.transmitted();
     }
-    
+
     NetworkTotals {
         received: total_received,
         transmitted: total_transmitted,
@@ -159,8 +177,11 @@ fn get_network_totals(networks: &Networks) -> NetworkTotals {
 
 fn measure_network_speed(networks: &mut Networks, cache: &mut NetworkCache) -> NetworkInfo {
     let current_stats = get_network_totals(networks);
-      let (download_speed, upload_speed) = if let Some(ref previous) = cache.previous_stats {
-        let time_diff = current_stats.timestamp.duration_since(previous.timestamp).as_secs_f64();
+    let (download_speed, upload_speed) = if let Some(ref previous) = cache.previous_stats {
+        let time_diff = current_stats
+            .timestamp
+            .duration_since(previous.timestamp)
+            .as_secs_f64();
         if time_diff > 0.0 {
             // Prevent overflow by checking if current values are greater than previous
             let download = if current_stats.received >= previous.received {
@@ -183,22 +204,38 @@ fn measure_network_speed(networks: &mut Networks, cache: &mut NetworkCache) -> N
 
     // Get network adapter information
     let adapters = get_network_adapters();
-      // Get interface details with enhanced information
+    // Get interface details with enhanced information
     let mut interfaces = Vec::new();
     for (interface_name, data) in networks.iter() {
         // Find matching adapter info
         let adapter_info = adapters.iter().find(|adapter| {
-            adapter.name.to_lowercase().contains(&interface_name.to_lowercase()) ||
-            interface_name.to_lowercase().contains(&adapter.name.to_lowercase()) ||
-            interface_name == &adapter.name.replace("Intel(R) ", "").replace("Realtek ", "")
+            adapter
+                .name
+                .to_lowercase()
+                .contains(&interface_name.to_lowercase())
+                || interface_name
+                .to_lowercase()
+                .contains(&adapter.name.to_lowercase())
+                || interface_name
+                == &adapter
+                .name
+                .replace("Intel(R) ", "")
+                .replace("Realtek ", "")
         });
-        
+
         // Calculate per-interface speeds if we have previous data
         let (interface_down_speed, interface_up_speed) = if cache.previous_stats.is_some() {
-            let time_diff = current_stats.timestamp.duration_since(cache.previous_stats.as_ref().unwrap().timestamp).as_secs_f64();
+            let time_diff = current_stats
+                .timestamp
+                .duration_since(cache.previous_stats.as_ref().unwrap().timestamp)
+                .as_secs_f64();
             if time_diff > 0.0 {
-                let down_speed = ((data.received() as f64 - cache.previous_stats.as_ref().unwrap().received as f64) / time_diff) as u64;
-                let up_speed = ((data.transmitted() as f64 - cache.previous_stats.as_ref().unwrap().transmitted as f64) / time_diff) as u64;
+                let down_speed = ((data.received() as f64
+                    - cache.previous_stats.as_ref().unwrap().received as f64)
+                    / time_diff) as u64;
+                let up_speed = ((data.transmitted() as f64
+                    - cache.previous_stats.as_ref().unwrap().transmitted as f64)
+                    / time_diff) as u64;
                 (down_speed, up_speed)
             } else {
                 (0, 0)
@@ -206,7 +243,7 @@ fn measure_network_speed(networks: &mut Networks, cache: &mut NetworkCache) -> N
         } else {
             (0, 0)
         };
-        
+
         interfaces.push(InterfaceInfo {
             name: interface_name.clone(),
             received: data.received(),
@@ -214,12 +251,14 @@ fn measure_network_speed(networks: &mut Networks, cache: &mut NetworkCache) -> N
             speed_down: interface_down_speed,
             speed_up: interface_up_speed,
             link_speed: adapter_info.and_then(|a| a.speed),
-            interface_type: adapter_info.map(|a| a.interface_type.clone()).unwrap_or_else(|| "Unknown".to_string()),
+            interface_type: adapter_info
+                .map(|a| a.interface_type.clone())
+                .unwrap_or_else(|| "Unknown".to_string()),
         });
     }
 
     cache.previous_stats = Some(current_stats.clone());
-    
+
     NetworkInfo {
         download_speed,
         upload_speed,
@@ -251,59 +290,75 @@ fn format_bytes(bytes: u64) -> String {
 
 #[command]
 pub fn get_network_stats() -> Result<SystemStats, String> {
-    let mut cache = NETWORK_CACHE.lock().map_err(|e| format!("Cache lock error: {}", e))?;
-    
+    let mut cache = NETWORK_CACHE
+        .lock()
+        .map_err(|e| format!("Cache lock error: {}", e))?;
+
     if cache.needs_update() {
         let mut networks = Networks::new_with_refreshed_list();
         std::thread::sleep(NETWORK_SAMPLE_INTERVAL);
         networks.refresh(true);
-        
+
         let network_info = measure_network_speed(&mut networks, &mut cache);
         cache.info = Some(network_info);
         cache.last_update = Instant::now();
     }
 
     let info = cache.info.as_ref().unwrap();
-    
+
     // Calculate overall network usage percentage (based on typical home connection speeds)
     let typical_home_speed = 100.0 * BYTES_IN_MB; // 100 MB/s typical
     let total_usage = info.download_speed + info.upload_speed;
-    let usage_percentage = ((total_usage as f64 / typical_home_speed) * 100.0).min(100.0) as f32;    // Create progress data for ALL interfaces (both active and inactive)
+    let usage_percentage = ((total_usage as f64 / typical_home_speed) * 100.0).min(100.0) as f32; // Create progress data for ALL interfaces (both active and inactive)
     let mut progress_data = Vec::new();
     let adapters = get_network_adapters(); // Get all network adapters
-    
+
     // Add all detected network adapters, not just active ones
     for adapter in &adapters {
         // Try to find matching sysinfo interface
         let sysinfo_interface = info.interfaces.iter().find(|iface| {
-            iface.name.to_lowercase().contains(&adapter.name.to_lowercase()) ||
-            adapter.name.to_lowercase().contains(&iface.name.to_lowercase())
+            iface
+                .name
+                .to_lowercase()
+                .contains(&adapter.name.to_lowercase())
+                || adapter
+                .name
+                .to_lowercase()
+                .contains(&iface.name.to_lowercase())
         });
-        
+
         let interface_percentage = if let Some(iface) = sysinfo_interface {
             let interface_total = iface.received + iface.transmitted;
             if info.total_received + info.total_transmitted > 0 {
-                ((interface_total as f64 / (info.total_received + info.total_transmitted) as f64) * 100.0) as f32
+                ((interface_total as f64 / (info.total_received + info.total_transmitted) as f64)
+                    * 100.0) as f32
             } else {
                 0.0
             }
         } else {
             0.0 // Interface exists but has no traffic data
         };
-          // Create comprehensive interface title with all available information
+        // Create comprehensive interface title with all available information
         let interface_title = if let Some(speed) = adapter.speed {
-            format!("{} ({}) - {} Mbps [{}]", adapter.name, adapter.interface_type, speed, adapter.status)
+            format!(
+                "{} ({}) - {} Mbps [{}]",
+                adapter.name, adapter.interface_type, speed, adapter.status
+            )
         } else {
-            format!("{} ({}) [{}]", adapter.name, adapter.interface_type, adapter.status)
+            format!(
+                "{} ({}) [{}]",
+                adapter.name, adapter.interface_type, adapter.status
+            )
         };
-        
+
         // Calculate more accurate interface usage based on traffic
         let interface_usage = if let Some(iface) = sysinfo_interface {
             let interface_total_traffic = iface.received + iface.transmitted;
             if interface_total_traffic > 0 && adapter.speed.is_some() {
                 let speed_bps = adapter.speed.unwrap() * 1_000_000; // Convert Mbps to bps
                 let recent_traffic = interface_total_traffic; // This would ideally be recent delta
-                let traffic_percentage = ((recent_traffic as f64 / speed_bps as f64) * 100.0).min(100.0);
+                let traffic_percentage =
+                    ((recent_traffic as f64 / speed_bps as f64) * 100.0).min(100.0);
                 traffic_percentage as f32
             } else {
                 interface_percentage
@@ -311,14 +366,14 @@ pub fn get_network_stats() -> Result<SystemStats, String> {
         } else {
             0.0 // Interface exists but no traffic data
         };
-        
+
         progress_data.push(ProgressData {
             title: interface_title,
             value: interface_usage,
             temperature: None,
         });
     }
-    
+
     let generic_data = vec![
         GenericData {
             title: "Download Speed".to_string(),

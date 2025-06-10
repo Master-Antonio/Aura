@@ -84,7 +84,8 @@ const App: React.FC = () => {
       gpu: false,
     },
   });
-  const [refreshInterval, setRefreshInterval] = useState(2000);  const [cardOrder, setCardOrder] = useState([
+  const [refreshInterval, setRefreshInterval] = useState(2000);
+  const [cardOrder, setCardOrder] = useState([
     "cpu",
     "memory",
     "storage",
@@ -373,7 +374,8 @@ const App: React.FC = () => {
   const renderCard = useCallback(
     (cardType: string, index: number) => {
       const cardProps = { id: cardType, index, onMove: handleCardMove };
-      switch (cardType) {        case "cpu":
+      switch (cardType) {
+        case "cpu":
           return systemStats.cpu ? (
             <DraggableCard key={cardType} {...cardProps}>
               <CpuUsageCard
@@ -452,7 +454,8 @@ const App: React.FC = () => {
             <DraggableCard key={cardType} {...cardProps}>
               <Skeleton variant="rectangular" height={200} />
             </DraggableCard>
-          );        case "gpu":
+          );
+        case "gpu":
           return systemStats.gpu ? (
             <DraggableCard key={cardType} {...cardProps}>
               <GpuCard gpuStats={systemStats.gpu} />
