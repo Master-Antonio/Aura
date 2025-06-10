@@ -96,7 +96,7 @@ Licenza: **Proprietaria con permesso di consultazione e contributo (source-avail
 
 ## Autori
 
-- [anton](https://github.com/anton) e collaboratori
+- [Toriga](https://github.com/Master-Antonio)
 
 ## Supportami
 paypal.me/MasterAntonio
