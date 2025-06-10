@@ -92,14 +92,14 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
   );
   const tableHeaders = useMemo(
     () => [
-      { id: "name", label: "Process Name" },
-      { id: "pid", label: "PID" },
-      { id: "status", label: "Status" },
-      { id: "cpu", label: "CPU %" },
-      { id: "ram", label: "RAM" },
-      { id: "disk", label: "Disk I/O" },
-      { id: "runtime", label: "Run Time" },
-      { id: "actions", label: "Actions" },
+      { id: "name", label: "Process Name", width: "12.5%" },
+      { id: "pid", label: "PID", width: "12.5%" },
+      { id: "status", label: "Status", width: "12.5%" },
+      { id: "cpu", label: "CPU %", width: "12.5%" },
+      { id: "ram", label: "RAM", width: "12.5%" },
+      { id: "disk", label: "Disk I/O", width: "12.5%" },
+      { id: "runtime", label: "Run Time", width: "12.5%" },
+      { id: "actions", label: "Actions", width: "13%" },
     ],
     [],
   );
@@ -159,6 +159,8 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
           border: `1px solid ${config.color}`,
           fontSize: "0.75rem",
           height: 24,
+          margin: "0 auto", // Centrato nella cella
+          display: "block", // Per far funzionare il margin auto
           "& .MuiChip-label": {
             px: 1.5,
           },
@@ -184,6 +186,7 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
       <Box
         display="flex"
         alignItems="center"
+        justifyContent="center" // Centrato
         gap={1.5}
         sx={{
           backgroundColor: getBgColor(usage),
@@ -191,6 +194,8 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
           px: 1,
           py: 0.5,
           minWidth: 70,
+          width: "fit-content", // Adatta alla larghezza del contenuto
+          margin: "0 auto", // Centrato nella cella
         }}
       >
         <Box
@@ -224,12 +229,31 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
         border: "1px solid",
         borderColor: "divider",
+        overflow: "hidden", // Previene lo scroll orizzontale
+        maxWidth: "100%",
+        overflowX: "hidden", // Forza nascondere lo scroll orizzontale
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
+        scrollbarWidth: "none", // Firefox
       }}
     >
       <Table
         sx={{
           tableLayout: "fixed",
           position: "relative",
+          width: "100%",
+          minWidth: "1000px", // Aumentata larghezza minima
+          // Stabilizza le dimensioni durante gli aggiornamenti
+          transition: "none",
+          "& .MuiTableCell-root": {
+            transition: "none", // Rimuove transizioni che possono causare flicker
+            padding: "12px 8px", // Padding uniforme per tutte le celle
+            borderRight: "1px solid rgba(224, 224, 224, 0.1)", // Linee di separazione sottili
+            "&:last-child": {
+              borderRight: "none",
+            },
+          },
         }}
       >
         <TableHead
@@ -253,6 +277,13 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
                   py: 2,
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
+                  width: header.width,
+                  minWidth: header.width,
+                  maxWidth: header.width,
+                  textAlign: 
+                    header.id === "name" ? "left" :
+                    header.id === "actions" ? "center" :
+                    "center", // Tutti gli altri header centrati
                 }}
               >
                 {header.label}
@@ -283,9 +314,15 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
                 sx={{
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                   fontWeight: 500,
                   py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  position: "relative", // Per contenere il contenuto
                 }}
+                title={process.name} // Tooltip per nome completo
               >
                 {process.affinity_set && (
                   <CheckCircleIcon
@@ -305,20 +342,44 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
                   fontSize: "0.875rem",
                   color: "text.secondary",
                   py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center",
                 }}
               >
                 {process.pid}
               </TableCell>
-              <TableCell sx={{ py: 2 }}>
+              <TableCell
+                sx={{
+                  py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center", // Centrato
+                }}
+              >
                 <ProcessStatusChip status={process.status} />
               </TableCell>
-              <TableCell sx={{ py: 2 }}>
+              <TableCell
+                sx={{
+                  py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center", // Centrato
+                }}
+              >
                 <CpuUsageCell usage={process.cpu_usage} />
               </TableCell>
               <TableCell
                 sx={{
                   fontWeight: 500,
                   py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center", // Centrato invece di right
                 }}
               >
                 {formatMemoryUsage(process.ram_usage)}
@@ -329,23 +390,48 @@ const ProcessTable: React.FC<ProcessTableProps> = ({
                   color: "text.secondary",
                   fontFamily: "monospace",
                   py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
+                title={`Read: ${process.disk_usage.read} / Write: ${process.disk_usage.write}`}
               >
-                {process.disk_usage.read} / {process.disk_usage.write} KB
+                <Box
+                  sx={{
+                    display: "inline-block",
+                    maxWidth: "100%",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {process.disk_usage.read} / {process.disk_usage.write}
+                </Box>
               </TableCell>
               <TableCell
                 sx={{
                   fontSize: "0.8rem",
                   color: "text.secondary",
                   py: 2,
+                  width: "12.5%",
+                  minWidth: "12.5%",
+                  maxWidth: "12.5%",
+                  textAlign: "center",
                 }}
               >
                 {process.run_time}
               </TableCell>
               <TableCell
                 sx={{
-                  width: "220px",
+                  width: "13%",
+                  minWidth: "13%",
+                  maxWidth: "13%",
                   py: 2,
+                  textAlign: "center", // Centrato
                 }}
               >
                 <ProcessActions
@@ -397,7 +483,9 @@ const ProcessActions: React.FC<ProcessActionsProps> = React.memo(
         display="flex"
         gap={0.5}
         alignItems="center"
+        justifyContent="center" // Centrato orizzontalmente
         sx={{
+          width: "100%", // Occupa tutta la larghezza della cella
           "& .MuiIconButton-root": {
             transition: "all 0.2s ease-in-out",
             "&:hover": {

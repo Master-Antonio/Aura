@@ -545,7 +545,16 @@ const App: React.FC = () => {
           </Box>
         </Fade>{" "}
         <Fade in timeout={900}>
-          <Box mt={2}>
+          <Box 
+            mt={2} 
+            sx={{ 
+              overflow: "hidden", 
+              maxWidth: "100%",
+              "& .MuiTableContainer-root": {
+                overflowX: "hidden",
+              }
+            }}
+          >
             <ProcessTable processes={processes} onOpenModal={handleOpenModal} />
           </Box>
         </Fade>

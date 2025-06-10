@@ -3,6 +3,9 @@ use crate::models::optimization::{
 };
 use anyhow::Result;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 pub struct OptimizationService {
     current_platform: Platform,
 }
@@ -571,9 +574,17 @@ impl OptimizationService {
     fn clear_memory_cache(&self) -> Result<OptimizationResult> {
         #[cfg(target_os = "windows")]
         {
-            use std::process::Command;
+            use std::process::Command;            // Use PowerShell to clear memory cache and working set
+            #[cfg(target_os = "windows")]
+            let output = Command::new("powershell")
+                .args(&[
+                    "-Command",
+                    "[System.GC]::Collect(); [System.GC]::WaitForPendingFinalizers(); [System.GC]::Collect()"
+                ])
+                .creation_flags(0x08000000) // CREATE_NO_WINDOW
+                .output();
 
-            // Use PowerShell to clear memory cache and working set
+            #[cfg(not(target_os = "windows"))]
             let output = Command::new("powershell")
                 .args(&[
                     "-Command",

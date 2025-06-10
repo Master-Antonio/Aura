@@ -7,6 +7,9 @@ use tauri::command;
 use tauri::ipc::InvokeError;
 use thiserror::Error;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 const TB: f64 = 1024.0 * 1024.0 * 1024.0 * 1024.0;
 const GB: f64 = 1024.0 * 1024.0 * 1024.0;
 const CACHE_DURATION: std::time::Duration = std::time::Duration::from_secs(5);
@@ -61,9 +64,19 @@ struct DriveInfo {
 
 #[cfg(target_os = "windows")]
 fn get_drive_models() -> Vec<DriveInfo> {
-    let mut drives = Vec::new();
+    let mut drives = Vec::new();    // Get comprehensive drive info using wmic
+    #[cfg(target_os = "windows")]
+    let output = Command::new("wmic")
+        .args(&[
+            "diskdrive",
+            "get",
+            "Model,InterfaceType,DeviceID,MediaType,Size,SerialNumber,BytesPerSector",
+            "/format:csv",
+        ])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output();
 
-    // Get comprehensive drive info using wmic
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("wmic")
         .args(&[
             "diskdrive",

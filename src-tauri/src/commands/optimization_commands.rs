@@ -4,6 +4,9 @@ use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tauri::command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 lazy_static::lazy_static! {
     static ref OPTIMIZATION_SERVICE: Arc<Mutex<OptimizationService>> = Arc::new(Mutex::new(OptimizationService::new()));
 }
@@ -59,15 +62,21 @@ pub async fn get_current_platform() -> PlatformInfo {
         "ARM64"
     } else {
         "Unknown"
-    };
-
-    // Get OS version for Windows
+    };    // Get OS version for Windows
     let version = if cfg!(target_os = "windows") {
         // Try to get Windows version
-        match std::process::Command::new("cmd")
+        #[cfg(target_os = "windows")]
+        let result = std::process::Command::new("cmd")
             .args(&["/C", "ver"])
-            .output()
-        {
+            .creation_flags(0x08000000) // CREATE_NO_WINDOW
+            .output();
+
+        #[cfg(not(target_os = "windows"))]
+        let result = std::process::Command::new("cmd")
+            .args(&["/C", "ver"])
+            .output();
+
+        match result {
             Ok(output) => {
                 let output_str = String::from_utf8_lossy(&output.stdout);
                 if output_str.contains("Windows 11") {

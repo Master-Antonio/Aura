@@ -624,33 +624,7 @@ fn resume_process_threads(pid: u32) -> Result<()> {
     }
 }
 
-fn execute_process_command(pid: u32, command: &str) -> Result<()> {
-    #[cfg(target_os = "windows")]
-    {
-        use std::process::Command;
-        Command::new("powershell")
-            .args(["-Command", &format!("{}-Process -Id {}", command, pid)])
-            .output()
-            .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
-        Ok(())
-    }
 
-    #[cfg(target_os = "linux")]
-    {
-        use std::process::Command;
-        let signal = if command == "suspend" { "STOP" } else { "CONT" };
-        Command::new("kill")
-            .args([&format!("-{}", signal), &pid.to_string()])
-            .output()
-            .map_err(|e| ProcessControlError::OpenError(e.to_string()))?;
-        Ok(())
-    }
-
-    #[cfg(not(any(target_os = "windows", target_os = "linux")))]
-    {
-        Err(ProcessControlError::UnsupportedPlatform)
-    }
-}
 
 #[cfg(target_os = "windows")]
 pub fn is_process_suspended(pid: u32) -> Result<bool> {

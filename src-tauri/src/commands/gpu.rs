@@ -4,6 +4,9 @@ use std::result::Result as StdResult;
 use tauri::command;
 use windows::Win32::Graphics::Dxgi::*;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 #[command]
 pub fn get_gpu_stats() -> StdResult<GpuStats, String> {
     let mut gpus = Vec::new();
@@ -232,6 +235,21 @@ fn determine_vendor(gpu_name: &str) -> &'static str {
 
 // Fallback function for NVIDIA GPUs using nvidia-smi
 fn get_nvidia_gpus() -> StdResult<Vec<GpuInfo>, String> {
+    #[cfg(target_os = "windows")]
+    let output = std::process::Command::new("cmd")
+        .args(&[
+            "/C",
+            "timeout",
+            "5",
+            "nvidia-smi",
+            "--query-gpu=name,memory.total,memory.used,temperature.gpu,utilization.gpu",
+            "--format=csv,noheader,nounits",
+        ])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output()
+        .map_err(|e| format!("Failed to execute nvidia-smi: {}", e))?;
+
+    #[cfg(not(target_os = "windows"))]
     let output = std::process::Command::new("cmd")
         .args(&[
             "/C",

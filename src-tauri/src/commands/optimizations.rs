@@ -6,6 +6,9 @@ use tauri::command;
 use tauri::ipc::InvokeError;
 use thiserror::Error;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 #[derive(Error, Debug)]
 pub enum OptimizationError {
     #[error("Failed to modify registry: {0}")]
@@ -112,6 +115,14 @@ pub fn optimize_time_resolution(enable: bool) -> Result<()> {
 }
 
 fn modify_registry(path: &str, key: &str, value: &str) -> std::result::Result<(), String> {
+    #[cfg(target_os = "windows")]
+    let output = Command::new("reg")
+        .args(&["add", path, "/v", key, "/t", "REG_DWORD", "/d", value, "/f"])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("reg")
         .args(&["add", path, "/v", key, "/t", "REG_DWORD", "/d", value, "/f"])
         .output()
@@ -125,6 +136,14 @@ fn modify_registry(path: &str, key: &str, value: &str) -> std::result::Result<()
 }
 
 fn delete_registry_value(path: &str, key: &str) -> std::result::Result<(), String> {
+    #[cfg(target_os = "windows")]
+    let output = Command::new("reg")
+        .args(&["delete", path, "/v", key, "/f"])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("reg")
         .args(&["delete", path, "/v", key, "/f"])
         .output()

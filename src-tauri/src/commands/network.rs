@@ -7,6 +7,9 @@ use std::{
 use sysinfo::Networks;
 use tauri::command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 const NETWORK_SAMPLE_INTERVAL: Duration = Duration::from_millis(1000);
 const CACHE_DURATION: Duration = Duration::from_secs(2);
 const BYTES_IN_MB: f64 = 1024.0 * 1024.0;
@@ -41,9 +44,20 @@ struct NetworkAdapterInfo {
 
 #[cfg(target_os = "windows")]
 fn get_network_adapters() -> Vec<NetworkAdapterInfo> {
-    let mut adapters = Vec::new();
+    let mut adapters = Vec::new();    // Get ALL network adapter info using wmic (not just connected ones)
+    #[cfg(target_os = "windows")]
+    let output = Command::new("wmic")
+        .args(&[
+            "path",
+            "win32_networkadapter",
+            "get",
+            "Name,Speed,AdapterType,NetConnectionStatus,MACAddress",
+            "/format:csv",
+        ])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output();
 
-    // Get ALL network adapter info using wmic (not just connected ones)
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("wmic")
         .args(&[
             "path",

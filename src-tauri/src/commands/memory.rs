@@ -3,12 +3,20 @@ use sysinfo::System;
 use tauri::command;
 
 #[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
 fn get_memory_details() -> Vec<GenericData> {
     use std::process::Command;
 
-    let mut details = Vec::new();
+    let mut details = Vec::new();    // Get memory modules info using wmic with enhanced information
+    #[cfg(target_os = "windows")]
+    let output = Command::new("wmic")
+        .args(&["memorychip", "get", "BankLabel,Capacity,Speed,Manufacturer,PartNumber,ConfiguredClockSpeed,DataWidth,TypeDetail,FormFactor", "/format:csv"])
+        .creation_flags(0x08000000) // CREATE_NO_WINDOW
+        .output();
 
-    // Get memory modules info using wmic with enhanced information
+    #[cfg(not(target_os = "windows"))]
     let output = Command::new("wmic")
         .args(&["memorychip", "get", "BankLabel,Capacity,Speed,Manufacturer,PartNumber,ConfiguredClockSpeed,DataWidth,TypeDetail,FormFactor", "/format:csv"])
         .output();
